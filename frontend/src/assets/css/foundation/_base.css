@@ -1,0 +1,27 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --grid-size: 100px;
+  --grid-gap: 10px;
+  --bg-color: #e9ebf0f8;
+  --card-bg: #fff;
+  --card-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  --primary-color: #007bff;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden; /* Disable browser-level scrolling */
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--bg-color);
+}

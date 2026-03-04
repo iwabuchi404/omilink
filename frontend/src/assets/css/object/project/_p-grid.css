@@ -1,0 +1,22 @@
+.p-grid {
+  position: absolute; /* Occupy all available space in .l-main */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: auto; /* Scrollbars are now on this div */
+  background-image: 
+    linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+  background-repeat: repeat;
+  background-attachment: local;
+  background-color: var(--bg-color);
+}
+
+.p-grid__container {
+  position: relative;
+  /* Minimum dimensions to fill viewport if empty */
+  min-width: 100%;
+  min-height: calc(100vh - 60px);
+}
