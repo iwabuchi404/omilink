@@ -1,23 +1,35 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import pb from './lib/pocketbase'
+import AppHeader from './components/layout/AppHeader.vue'
+import ViewTabs from './components/layout/ViewTabs.vue'
 import GridView from './components/GridView.vue'
 import Auth from './components/Auth.vue'
-import AddItemModal from './components/AddItemModal.vue'
+import AddItemModal from './components/modals/AddItemModal.vue'
+import AddViewModal from './components/modals/AddViewModal.vue'
+import type { ViewsResponse } from './lib/pocketbase-types'
+import { computed, watch } from 'vue'
 
 const isEditMode = ref(false)
 const isAuthenticated = ref(pb.authStore.isValid)
 const currentUser = ref(pb.authStore.model)
 const showAddModal = ref(false)
+const showAddViewModal = ref(false)
+const searchQuery = ref('')
 const gridRef = ref<any>(null)
+
+const views = ref<ViewsResponse[]>([])
+const currentViewId = ref<string | null>(null)
+const currentView = computed(() => views.value.find(v => v.id === currentViewId.value) || null)
 
 const toggleEditMode = () => {
   isEditMode.value = !isEditMode.value
 }
 
-const handleAuthSuccess = () => {
+const handleAuthSuccess = async () => {
   isAuthenticated.value = pb.authStore.isValid
   currentUser.value = pb.authStore.model
+  await fetchViews()
 }
 
 const logout = () => {
@@ -25,6 +37,8 @@ const logout = () => {
   isAuthenticated.value = false
   currentUser.value = null
   isEditMode.value = false
+  views.value = []
+  currentViewId.value = null
 }
 
 const handleAddSuccess = () => {
@@ -34,6 +48,42 @@ const handleAddSuccess = () => {
     gridRef.value.fetchItems()
   }
 }
+
+const handleViewCreated = (view: ViewsResponse) => {
+  views.value.push(view);
+  currentViewId.value = view.id;
+  showAddViewModal.value = false;
+}
+
+async function fetchViews() {
+  if (!isAuthenticated.value) return;
+  try {
+    let records = await pb.collection('views').getFullList<ViewsResponse>({ sort: 'created' });
+    if (records.length === 0) {
+      const home = await pb.collection('views').create<ViewsResponse>({
+        user: currentUser.value?.id,
+        name: '🏠 Home',
+        cols: 8,
+        cell_size: 'medium',
+      });
+      records = [home];
+    }
+    views.value = records;
+    if (!currentViewId.value && records.length > 0) {
+      const savedViewId = localStorage.getItem('omi_last_view');
+      const foundView = savedViewId ? records.find(v => v.id === savedViewId) : null;
+      currentViewId.value = foundView ? foundView.id : records[0]!.id;
+    }
+  } catch (e) {
+    console.error('Failed to fetch views', e);
+  }
+}
+// Watch for view changes to save to localStorage
+watch(currentViewId, (newId) => {
+  if (newId) {
+    localStorage.setItem('omi_last_view', newId);
+  }
+});
 
 // Watch for store changes and verify session on mount
 onMounted(async () => {
@@ -47,6 +97,7 @@ onMounted(async () => {
   if (pb.authStore.isValid) {
     try {
       await pb.collection('users').authRefresh();
+      await fetchViews();
     } catch (err) {
       // If token is invalid/expired, clear it
       logout();
@@ -57,34 +108,51 @@ onMounted(async () => {
 
 <template>
   <div class="l-app-container">
-    <header class="l-header">
-      <div class="l-header__logo">OMI LINK</div>
-      <div style="flex-grow: 1;"></div>
-      
-      <div v-if="isAuthenticated" class="l-header__actions">
-        <span class="l-header__user-info">{{ currentUser?.name || currentUser?.email }}</span>
-        <button 
-          :class="{ 'is-active': isEditMode }"
-          @click="toggleEditMode"
-        >
-          {{ isEditMode ? 'Finish Editing' : 'Edit Layout' }}
-        </button>
-        <button @click="showAddModal = true">+ Add</button>
-        <button>(3) Inbox</button>
-        <button @click="logout" class="u-text-danger">Logout</button>
-      </div>
-    </header>
+    <AppHeader 
+      :is-authenticated="isAuthenticated"
+      :current-user="currentUser"
+      :is-edit-mode="isEditMode"
+      :current-view="currentView"
+      v-model:search-query="searchQuery"
+      @toggle-edit-mode="toggleEditMode"
+      @show-add-modal="showAddModal = true"
+      @logout="logout"
+    />
+
+    <ViewTabs 
+      v-if="isAuthenticated && currentView"
+      :views="views"
+      :current-view-id="currentViewId"
+      @update:current-view-id="currentViewId = $event"
+      @add-view="showAddViewModal = true"
+    />
 
     <main class="l-main">
       <div v-if="!isAuthenticated" class="p-auth-page">
         <Auth @auth-success="handleAuthSuccess" />
       </div>
-      <GridView v-else ref="gridRef" :is-edit-mode="isEditMode" />
+      <GridView 
+        v-else-if="currentView" 
+        ref="gridRef" 
+        :is-edit-mode="isEditMode" 
+        :current-view="currentView" 
+        :views="views"
+        :search-query="searchQuery"
+      />
       
       <AddItemModal 
+        v-if="currentView"
         :show="showAddModal" 
+        :current-view="currentView"
+        :views="views"
         @close="showAddModal = false" 
         @success="handleAddSuccess" 
+      />
+      
+      <AddViewModal 
+        v-if="showAddViewModal"
+        @close="showAddViewModal = false"
+        @view-created="handleViewCreated"
       />
     </main>
   </div>
@@ -99,14 +167,12 @@ onMounted(async () => {
   overflow: hidden;
 }
 
-.l-header {
-  flex-shrink: 0;
-}
-
 .l-main {
   flex-grow: 1;
   position: relative;
   background-color: #f0f2f5;
+  height: 100%; /* Ensure main takes up remaining space properly */
+  overflow: hidden; /* Prevent scrolling on main, let children scroll */
 }
 
 .p-auth-page {
@@ -114,52 +180,5 @@ onMounted(async () => {
   justify-content: center;
   align-items: center;
   height: 100%;
-}
-
-.l-header__logo {
-  font-weight: bold;
-  font-size: 1.2rem;
-  letter-spacing: 0.1em;
-}
-
-.l-header__user-info {
-  font-size: 0.85rem;
-  color: #666;
-  margin-right: 15px;
-}
-
-.l-header__actions {
-  display: flex;
-  align-items: center;
-}
-
-.l-header__actions button {
-  margin-left: 10px;
-  padding: 5px 15px;
-  cursor: pointer;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-  font-size: 0.9rem;
-}
-
-.l-header__actions button:hover {
-  background-color: #f8f9fa;
-}
-
-.l-header__actions button.is-active {
-  background-color: #007bff;
-  color: white;
-  border-color: #0056b3;
-}
-
-.u-text-danger {
-  color: #dc3545 !important;
-}
-
-.u-text-danger:hover {
-  background-color: #fff1f2 !important;
-  border-color: #fecaca !important;
 }
 </style>

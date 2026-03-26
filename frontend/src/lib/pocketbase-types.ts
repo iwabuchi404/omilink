@@ -100,6 +100,7 @@ export type ItemsRecord = {
 	created: IsoAutoDateString
 	deleted_at?: IsoDateString
 	description?: string
+	favicon_url?: string
 	id: string
 	is_deleted?: boolean
 	is_public?: boolean
@@ -153,7 +154,6 @@ export type ViewsRecord = {
 	cols: number
 	created: IsoAutoDateString
 	id: string
-	is_inbox?: boolean
 	name: string
 	updated: IsoAutoDateString
 	user: RecordIdString
