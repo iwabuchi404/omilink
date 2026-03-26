@@ -22,6 +22,7 @@ jobs:
           host: ${{ secrets.GCP_HOST }}
           username: deploy
           key: ${{ secrets.GCP_SSH_KEY }}
+          passphrase: ${{ secrets.GCP_SSH_PASSPHRASE }}
           # pb_public だけでなく、マイグレーションとフックも同期対象に含めます
           source: "pocketbase/pb_public/*,pocketbase/pb_migrations/*,pocketbase/pb_hooks/*"
           target: "/opt/omilink/"
@@ -32,5 +33,6 @@ jobs:
           host: ${{ secrets.GCP_HOST }}
           username: deploy
           key: ${{ secrets.GCP_SSH_KEY }}
+          passphrase: ${{ secrets.GCP_SSH_PASSPHRASE }}
           # 再起動時にマイグレーションが自動適用されます
           script: sudo systemctl restart pocketbase
