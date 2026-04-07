@@ -55,16 +55,16 @@ function close() {
 <template>
   <div class="c-modal-overlay" @click.self="close">
     <div class="c-modal">
-      <h3 class="c-modal__title">New View</h3>
+      <h3 class="c-modal__title">{{ $t('modal.newView') }}</h3>
 
       <form @submit.prevent="handleSubmit" class="c-modal__form">
         <div class="c-modal__field">
-          <label>View Name</label>
-          <input v-model="name" type="text" placeholder="e.g. Tech, Reading List..." required autofocus />
+          <label>{{ $t('modal.viewName') }}</label>
+          <input v-model="name" type="text" :placeholder="$t('modal.viewNamePlaceholder')" required autofocus />
         </div>
 
         <div class="c-modal__field">
-          <label>Columns <span class="c-modal__hint">({{ cols }} columns)</span></label>
+          <label>{{ $t('modal.columns') }} <span class="c-modal__hint">({{ cols }} {{ $t('modal.columnsCount') }})</span></label>
           <input v-model.number="cols" type="range" min="4" max="16" step="2" />
           <div class="c-modal__range-labels">
             <span>4</span><span>8</span><span>12</span><span>16</span>
@@ -72,7 +72,7 @@ function close() {
         </div>
 
         <div class="c-modal__field">
-          <label>Cell Size</label>
+          <label>{{ $t('modal.cellSize') }}</label>
           <div class="c-modal__cell-sizes">
             <button 
               v-for="size in ['small', 'medium', 'large']" 
@@ -89,9 +89,9 @@ function close() {
         <p v-if="error" class="c-modal__error">{{ error }}</p>
 
         <div class="c-modal__actions">
-          <button type="button" @click="close" class="btn-secondary">Cancel</button>
+          <button type="button" @click="close" class="btn-secondary">{{ $t('modal.cancel') }}</button>
           <button type="submit" class="btn-primary" :disabled="loading">
-            {{ loading ? 'Creating...' : 'Create View' }}
+            {{ loading ? $t('modal.creating') : $t('modal.createView') }}
           </button>
         </div>
       </form>

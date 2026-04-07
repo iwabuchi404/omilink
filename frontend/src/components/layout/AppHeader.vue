@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { AuthModel } from 'pocketbase';
 import type { ViewsResponse } from '../../lib/pocketbase-types';
 
@@ -14,12 +15,22 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'toggleEditMode'): void;
   (e: 'showAddModal'): void;
+  (e: 'showToolsModal'): void;
   (e: 'logout'): void;
   (e: 'update:searchQuery', value: string): void;
 }>();
 
 const showUserMenu = ref(false);
 const showMobileSearch = ref(false);
+
+const { locale } = useI18n();
+const currentLanguage = computed(() => locale.value.toUpperCase());
+
+const toggleLanguage = () => {
+  const newLang = locale.value === 'en' ? 'ja' : 'en';
+  locale.value = newLang;
+  localStorage.setItem('app-language', newLang);
+};
 </script>
 
 <template>
@@ -35,7 +46,7 @@ const showMobileSearch = ref(false);
         <input 
           type="text" 
           class="c-search-bar__input" 
-          placeholder="Search items..." 
+          :placeholder="$t('header.searchPlaceholder')" 
           :value="searchQuery"
           @input="emit('update:searchQuery', ($event.target as HTMLInputElement).value)"
         />
@@ -43,7 +54,16 @@ const showMobileSearch = ref(false);
       </div>
     </div>
     
-    <div v-else style="flex-grow: 1;"></div>
+    <div v-else class="l-header__actions" style="margin-left: auto;">
+      <button 
+        class="l-header__btn"
+        @click="toggleLanguage"
+        title="Change Language"
+      >
+        <span class="l-header__btn-icon">🌐</span>
+        <span class="l-header__btn-text"> {{ currentLanguage }}</span>
+      </button>
+    </div>
     
     <div v-if="isAuthenticated" class="l-header__actions">
       <button 
@@ -63,7 +83,7 @@ const showMobileSearch = ref(false);
       >
         <span class="l-header__btn-icon" v-if="isEditMode">✓</span>
         <span class="l-header__btn-icon" v-else>✎</span>
-        <span class="l-header__btn-text">{{ isEditMode ? ' Done' : ' Edit' }}</span>
+        <span class="l-header__btn-text">{{ isEditMode ? $t('header.btnDone') : $t('header.btnEdit') }}</span>
       </button>
 
       <button 
@@ -73,7 +93,7 @@ const showMobileSearch = ref(false);
         title="Add Item"
       >
         <span class="l-header__btn-icon">+</span>
-        <span class="l-header__btn-text"> Add</span>
+        <span class="l-header__btn-text">{{ $t('header.btnAdd') }}</span>
       </button>
 
       <!-- User menu -->
@@ -90,8 +110,16 @@ const showMobileSearch = ref(false);
             <span class="l-header__dropdown-email">{{ currentUser?.email }}</span>
           </div>
           <div class="l-header__dropdown-divider"></div>
+          <button class="l-header__dropdown-item" @click="toggleLanguage">
+            <span>🌐</span> Language: {{ currentLanguage }}
+          </button>
+          <div class="l-header__dropdown-divider"></div>
+          <button class="l-header__dropdown-item" @click="$emit('showToolsModal')">
+            <span>📦</span> Tools & App
+          </button>
+          <div class="l-header__dropdown-divider"></div>
           <button class="l-header__dropdown-item" @click="$emit('logout')">
-            <span>🔓</span> Logout
+            <span>🔓</span> {{ $t('header.logout') }}
           </button>
         </div>
       </div>

@@ -7,6 +7,7 @@ import GridView from './components/GridView.vue'
 import Auth from './components/Auth.vue'
 import AddItemModal from './components/modals/AddItemModal.vue'
 import AddViewModal from './components/modals/AddViewModal.vue'
+import ToolsModal from './components/modals/ToolsModal.vue'
 import type { ViewsResponse } from './lib/pocketbase-types'
 import { computed, watch } from 'vue'
 
@@ -15,8 +16,12 @@ const isAuthenticated = ref(pb.authStore.isValid)
 const currentUser = ref(pb.authStore.model)
 const showAddModal = ref(false)
 const showAddViewModal = ref(false)
+const showToolsModal = ref(false)
 const searchQuery = ref('')
 const gridRef = ref<any>(null)
+
+const sharedUrl = ref('')
+const sharedTitle = ref('')
 
 const views = ref<ViewsResponse[]>([])
 const currentViewId = ref<string | null>(null)
@@ -30,6 +35,12 @@ const handleAuthSuccess = async () => {
   isAuthenticated.value = pb.authStore.isValid
   currentUser.value = pb.authStore.model
   await fetchViews()
+  
+  if (sharedUrl.value) {
+    setTimeout(() => {
+      showAddModal.value = true;
+    }, 500);
+  }
 }
 
 const logout = () => {
@@ -87,6 +98,30 @@ watch(currentViewId, (newId) => {
 
 // Watch for store changes and verify session on mount
 onMounted(async () => {
+  // Parse URL for shared data
+  const params = new URLSearchParams(window.location.search);
+  const pUrl = params.get('url') || params.get('text');
+  const pTitle = params.get('title');
+
+  if (pUrl) {
+    let finalUrl = pUrl;
+    // Android Share sometimes sends "Page Title https://url" in the text parameter
+    if (pUrl.includes('http')) {
+      const match = pUrl.match(/(https?:\/\/[^\s]+)/);
+      if (match) finalUrl = match[1];
+    }
+    sharedUrl.value = finalUrl;
+    if (pTitle) sharedTitle.value = pTitle as string;
+    
+    // Clean up URL so it doesn't trigger again on refresh
+    window.history.replaceState({}, document.title, window.location.pathname);
+
+    // If already authenticated, show modal immediately!
+    if (pb.authStore.isValid) {
+      showAddModal.value = true;
+    }
+  }
+
   // Sync state with store
   pb.authStore.onChange(() => {
     isAuthenticated.value = pb.authStore.isValid
@@ -116,6 +151,7 @@ onMounted(async () => {
       v-model:search-query="searchQuery"
       @toggle-edit-mode="toggleEditMode"
       @show-add-modal="showAddModal = true"
+      @show-tools-modal="showToolsModal = true"
       @logout="logout"
     />
 
@@ -145,7 +181,9 @@ onMounted(async () => {
         :show="showAddModal" 
         :current-view="currentView"
         :views="views"
-        @close="showAddModal = false" 
+        :prefill-url="sharedUrl"
+        :prefill-title="sharedTitle"
+        @close="showAddModal = false; sharedUrl = ''; sharedTitle = '';" 
         @success="handleAddSuccess" 
       />
       
@@ -153,6 +191,11 @@ onMounted(async () => {
         v-if="showAddViewModal"
         @close="showAddViewModal = false"
         @view-created="handleViewCreated"
+      />
+
+      <ToolsModal
+        :show="showToolsModal"
+        @close="showToolsModal = false"
       />
     </main>
   </div>

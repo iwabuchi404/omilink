@@ -7,6 +7,8 @@ const props = defineProps<{
   show: boolean;
   currentView: ViewsResponse;
   views: ViewsResponse[];
+  prefillUrl?: string;
+  prefillTitle?: string;
 }>();
 
 const emit = defineEmits(['close', 'success']);
@@ -67,6 +69,19 @@ async function fetchTitle() {
 // Keep selectedViewId in sync if currentView changes
 watch(() => props.currentView?.id, (id) => {
   if (id) selectedViewId.value = id;
+}, { immediate: true });
+
+// Handle prefilled data when modal opens
+watch(() => props.show, (isShowing) => {
+  if (isShowing && props.prefillUrl) {
+    type.value = 'bookmark';
+    url.value = props.prefillUrl;
+    if (props.prefillTitle) {
+      title.value = props.prefillTitle;
+    }
+    // Auto-fetch OGP if neither title nor favicon exists yet for this URL
+    fetchTitle();
+  }
 }, { immediate: true });
 
 async function handleSubmit() {
@@ -146,7 +161,7 @@ function close() {
 <template>
   <div v-if="show" class="c-modal-overlay" @click.self="close">
     <div class="c-modal">
-      <h3 class="c-modal__title">New Item</h3>
+      <h3 class="c-modal__title">{{ $t('modal.newItem') }}</h3>
       
       <!-- Type selector -->
       <div class="c-modal__type-selector">
@@ -154,48 +169,48 @@ function close() {
           :class="['c-modal__type-btn', { 'is-active': type === 'bookmark' }]" 
           @click="type = 'bookmark'"
         >
-          🔗 Bookmark
+          🔗 {{ $t('modal.bookmark') }}
         </button>
         <button 
           :class="['c-modal__type-btn', { 'is-active': type === 'memo' }]" 
           @click="type = 'memo'"
         >
-          📝 Memo
+          📝 {{ $t('modal.memo') }}
         </button>
       </div>
 
       <form @submit.prevent="handleSubmit" class="c-modal__form">
         <!-- URL (bookmark only) -->
         <div v-if="type === 'bookmark'" class="c-modal__field">
-          <label>URL</label>
+          <label>{{ $t('modal.url') }}</label>
           <div class="c-modal__input-group">
-            <input v-model="url" type="url" placeholder="https://..." required />
+            <input v-model="url" type="url" :placeholder="$t('modal.urlPlaceholder')" required />
             <button 
               type="button" 
               class="btn-fetch" 
               @click="fetchTitle" 
               :disabled="!url || fetchingTitle"
             >
-              {{ fetchingTitle ? '...' : 'Fetch' }}
+              {{ fetchingTitle ? $t('modal.fetching') : $t('modal.fetch') }}
             </button>
           </div>
         </div>
 
         <!-- Title -->
         <div class="c-modal__field">
-          <label>Title <span class="c-modal__hint">(optional)</span></label>
-          <input v-model="title" type="text" :placeholder="type === 'bookmark' ? 'Auto-filled by OGP if blank' : 'Note title'" />
+          <label>{{ $t('modal.title') }} <span class="c-modal__hint">{{ $t('modal.optional') }}</span></label>
+          <input v-model="title" type="text" :placeholder="type === 'bookmark' ? $t('modal.titlePlaceholderBookmark') : $t('modal.titlePlaceholderMemo')" />
         </div>
 
         <!-- Content -->
         <div class="c-modal__field">
-          <label>{{ type === 'bookmark' ? 'Description' : 'Content' }}</label>
-          <textarea v-model="content" :rows="type === 'memo' ? 5 : 2" :placeholder="type === 'memo' ? 'Write your note...' : 'Additional context...'"></textarea>
+          <label>{{ type === 'bookmark' ? $t('modal.description') : $t('modal.content') }}</label>
+          <textarea v-model="content" :rows="type === 'memo' ? 5 : 2" :placeholder="type === 'memo' ? $t('modal.descPlaceholderMemo') : $t('modal.descPlaceholderBookmark')"></textarea>
         </div>
 
         <!-- Target View selector -->
         <div class="c-modal__field">
-          <label>Add to View</label>
+          <label>{{ $t('modal.addToView') }}</label>
           <select v-model="selectedViewId">
             <option v-for="v in views" :key="v.id" :value="v.id">
               {{ v.name }}
@@ -206,9 +221,9 @@ function close() {
         <p v-if="error" class="c-modal__error">{{ error }}</p>
 
         <div class="c-modal__actions">
-          <button type="button" @click="close" class="btn-secondary">Cancel</button>
+          <button type="button" @click="close" class="btn-secondary">{{ $t('modal.cancel') }}</button>
           <button type="submit" class="btn-primary" :disabled="loading">
-            {{ loading ? 'Adding...' : 'Add Item' }}
+            {{ loading ? $t('modal.adding') : $t('modal.addItem') }}
           </button>
         </div>
       </form>

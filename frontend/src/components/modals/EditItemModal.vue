@@ -114,40 +114,40 @@ function close() {
 <template>
   <div v-if="show && item" class="c-modal-overlay" @click.self="close">
     <div class="c-modal">
-      <h3 class="c-modal__title">Edit {{ item.type === 'bookmark' ? 'Bookmark' : 'Memo' }}</h3>
+      <h3 class="c-modal__title">{{ item.type === 'bookmark' ? $t('modal.editBookmark') : $t('modal.editMemo') }}</h3>
       
       <form @submit.prevent="handleSubmit" class="c-modal__form">
         <div v-if="item.type === 'bookmark'" class="c-modal__field">
-          <label>URL</label>
+          <label>{{ $t('modal.url') }}</label>
           <div class="c-modal__input-group">
-            <input v-model="url" type="url" placeholder="https://..." required />
+            <input v-model="url" type="url" :placeholder="$t('modal.urlPlaceholder')" required />
             <button 
               type="button" 
               class="btn-fetch" 
               @click="fetchTitle" 
               :disabled="!url || fetchingTitle"
             >
-              {{ fetchingTitle ? '...' : 'Fetch' }}
+              {{ fetchingTitle ? $t('modal.fetching') : $t('modal.fetch') }}
             </button>
           </div>
         </div>
 
         <div class="c-modal__field">
-          <label>Title <span class="c-modal__hint">(optional)</span></label>
-          <input v-model="title" type="text" :placeholder="item.type === 'bookmark' ? 'URL will be used if blank' : 'Note title'" />
+          <label>{{ $t('modal.title') }} <span class="c-modal__hint">{{ $t('modal.optional') }}</span></label>
+          <input v-model="title" type="text" :placeholder="item.type === 'bookmark' ? $t('modal.titlePlaceholderBookmark') : $t('modal.titlePlaceholderMemo')" />
         </div>
 
         <div class="c-modal__field">
-          <label>{{ item.type === 'bookmark' ? 'Description' : 'Content' }}</label>
-          <textarea v-model="content" rows="5" placeholder="Content..."></textarea>
+          <label>{{ item.type === 'bookmark' ? $t('modal.description') : $t('modal.content') }}</label>
+          <textarea v-model="content" rows="5" :placeholder="$t('modal.contentPlaceholder')"></textarea>
         </div>
 
         <p v-if="error" class="c-modal__error">{{ error }}</p>
 
         <div class="c-modal__actions">
-          <button type="button" @click="close" class="btn-secondary">Cancel</button>
+          <button type="button" @click="close" class="btn-secondary">{{ $t('modal.cancel') }}</button>
           <button type="submit" class="btn-primary" :disabled="loading">
-            {{ loading ? 'Saving...' : 'Save Changes' }}
+            {{ loading ? $t('modal.saving') : $t('modal.saveChanges') }}
           </button>
         </div>
       </form>

@@ -426,7 +426,7 @@ onUnmounted(() => {
 
 <template>
   <div class="c-grid-container" :class="{ 'is-edit-mode': isEditMode }">
-    <div v-if="loading" class="p-grid__loading">Loading your bookmarks...</div>
+    <div v-if="loading" class="p-grid__loading">{{ $t('grid.loading') }}</div>
     <div v-else class="p-grid__container" 
          :class="{ 'is-drag-invalid': dragPreview && !dragPreview.isValid }"
          :style="{ 
@@ -465,7 +465,7 @@ onUnmounted(() => {
       </div>
       
       <div v-if="items.length === 0 && !dragPreview" class="p-grid__empty">
-        No items yet. Click "+ Add" to create your first bookmark!
+        {{ $t('grid.empty') }}
       </div>
 
       <!-- Drag Preview Ghost -->
