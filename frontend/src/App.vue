@@ -108,7 +108,7 @@ onMounted(async () => {
     // Android Share sometimes sends "Page Title https://url" in the text parameter
     if (pUrl.includes('http')) {
       const match = pUrl.match(/(https?:\/\/[^\s]+)/);
-      if (match) finalUrl = match[1];
+      if (match && match[1]) finalUrl = match[1];
     }
     sharedUrl.value = finalUrl;
     if (pTitle) sharedTitle.value = pTitle as string;
