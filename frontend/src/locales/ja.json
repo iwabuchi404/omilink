@@ -5,7 +5,7 @@
     "displayName": "表示名",
     "yourName": "氏名",
     "emailAddress": "メールアドレス",
-    "emailPlaceholder": "email@example.com",
+    "emailPlaceholder": "email{'@'}example.com",
     "password": "パスワード",
     "minPassword": "8文字以上",
     "processing": "処理中...",

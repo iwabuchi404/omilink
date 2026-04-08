@@ -5,7 +5,7 @@
     "displayName": "Display Name",
     "yourName": "Your Name",
     "emailAddress": "Email Address",
-    "emailPlaceholder": "email@example.com",
+    "emailPlaceholder": "email{'@'}example.com",
     "password": "Password",
     "minPassword": "Min 8 characters",
     "processing": "Processing...",
