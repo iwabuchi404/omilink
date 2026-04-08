@@ -2,6 +2,8 @@
 import { ref, watch } from 'vue';
 import pb from '../../lib/pocketbase';
 import type { ItemsRecord, PlacementsRecord, ViewsResponse } from '../../lib/pocketbase-types';
+import BaseModal from '../ui/BaseModal.vue';
+import BaseButton from '../ui/BaseButton.vue';
 
 const props = defineProps<{
   show: boolean;
@@ -159,10 +161,7 @@ function close() {
 </script>
 
 <template>
-  <div v-if="show" class="c-modal-overlay" @click.self="close">
-    <div class="c-modal">
-      <h3 class="c-modal__title">{{ $t('modal.newItem') }}</h3>
-      
+  <BaseModal :show="show" :title="$t('modal.newItem')" maxWidth="500px" @close="close">
       <!-- Type selector -->
       <div class="c-modal__type-selector">
         <button 
@@ -221,50 +220,16 @@ function close() {
         <p v-if="error" class="c-modal__error">{{ error }}</p>
 
         <div class="c-modal__actions">
-          <button type="button" @click="close" class="btn-secondary">{{ $t('modal.cancel') }}</button>
-          <button type="submit" class="btn-primary" :disabled="loading">
+          <BaseButton variant="secondary" @click="close">{{ $t('modal.cancel') }}</BaseButton>
+          <BaseButton type="submit" variant="primary" :loading="loading" @click="handleSubmit">
             {{ loading ? $t('modal.adding') : $t('modal.addItem') }}
-          </button>
+          </BaseButton>
         </div>
       </form>
-    </div>
-  </div>
+  </BaseModal>
 </template>
 
 <style scoped>
-.c-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-  padding: 20px;
-}
-
-.c-modal {
-  background: white;
-  padding: 30px;
-  border-radius: 16px;
-  width: 100%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-}
-
-.c-modal__title {
-  margin-top: 0;
-  margin-bottom: 24px;
-  font-size: 1.4rem;
-  font-weight: 700;
-}
-
 .c-modal__tabs, .c-modal__type-selector {
   display: flex;
   margin-bottom: 24px;
@@ -334,25 +299,6 @@ function close() {
   justify-content: flex-end;
   gap: 12px;
   margin-top: 24px;
-}
-
-.btn-primary {
-  background: #007bff;
-  color: white;
-  border: none;
-  padding: 12px 28px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background 0.2s;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #0056b3;
-}
-
-.btn-secondary:hover {
-  background: #f5f5f5;
 }
 
 .c-modal__input-group {

@@ -3,6 +3,8 @@ import { ref, computed, watch } from 'vue';
 import pb from '../../lib/pocketbase';
 import type { ViewsResponse } from '../../lib/pocketbase-types';
 import { findNextFreePosition } from '../../lib/placement';
+import BaseModal from '../ui/BaseModal.vue';
+import BaseButton from '../ui/BaseButton.vue';
 
 interface ViewItem {
   itemId: string;
@@ -95,66 +97,44 @@ function close() {
 </script>
 
 <template>
-  <div v-if="show && item" class="c-modal-overlay" @click.self="close">
-    <div class="c-modal">
+  <BaseModal :show="show && !!item" @close="close">
+    <template #header>
       <h3 class="c-modal__title">Add to Another View</h3>
-      <p class="c-modal__subtitle">Select a view to place "{{ item.title }}" in.</p>
+      <p v-if="item" class="c-modal__subtitle">Select a view to place "{{ item.title }}" in.</p>
+    </template>
       
-      <form @submit.prevent="handleSubmit" class="c-modal__form">
-        <div class="c-modal__field">
-          <label>Target View</label>
-          <select v-model="selectedViewId" required>
-            <option v-for="v in availableViews" :key="v.id" :value="v.id">
-              {{ v.name }}
-            </option>
-          </select>
-          <p v-if="availableViews.length === 0" class="c-modal__hint">
-            No other views available. Create one first!
-          </p>
-        </div>
+    <form @submit.prevent="handleSubmit" class="c-modal__form">
+      <div class="c-modal__field">
+        <label>Target View</label>
+        <select v-model="selectedViewId" required>
+          <option v-for="v in availableViews" :key="v.id" :value="v.id">
+            {{ v.name }}
+          </option>
+        </select>
+        <p v-if="availableViews.length === 0" class="c-modal__hint">
+          No other views available. Create one first!
+        </p>
+      </div>
 
-        <p v-if="error" class="c-modal__error">{{ error }}</p>
+      <p v-if="error" class="c-modal__error">{{ error }}</p>
 
-        <div class="c-modal__actions">
-          <button type="button" @click="close" class="btn-secondary">Cancel</button>
-          <button 
-            type="submit" 
-            class="btn-primary" 
-            :disabled="loading || availableViews.length === 0"
-          >
-            {{ loading ? 'Adding...' : 'Add to View' }}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
+      <div class="c-modal__actions">
+        <BaseButton variant="secondary" @click="close">Cancel</BaseButton>
+        <BaseButton 
+          type="submit" 
+          variant="primary" 
+          :loading="loading"
+          :disabled="availableViews.length === 0"
+          @click="handleSubmit"
+        >
+          {{ loading ? 'Adding...' : 'Add to View' }}
+        </BaseButton>
+      </div>
+    </form>
+  </BaseModal>
 </template>
 
 <style scoped>
-.c-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-  padding: 20px;
-}
-
-.c-modal {
-  background: white;
-  padding: 30px;
-  border-radius: 16px;
-  width: 100%;
-  max-width: 450px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-}
-
 .c-modal__title {
   margin-top: 0;
   margin-bottom: 8px;
@@ -198,31 +178,5 @@ function close() {
   color: #dc3545;
   font-size: 0.85rem;
   margin-bottom: 15px;
-}
-
-.c-modal__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 24px;
-}
-
-.btn-primary {
-  background: #007bff;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.btn-secondary {
-  background: #eee;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
 }
 </style>

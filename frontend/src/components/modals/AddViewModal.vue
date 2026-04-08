@@ -2,6 +2,8 @@
 import { ref } from 'vue';
 import pb from '../../lib/pocketbase';
 import type { ViewsResponse } from '../../lib/pocketbase-types';
+import BaseModal from '../ui/BaseModal.vue';
+import BaseButton from '../ui/BaseButton.vue';
 
 const emit = defineEmits<{
   (e: 'close'): void;
@@ -53,82 +55,49 @@ function close() {
 </script>
 
 <template>
-  <div class="c-modal-overlay" @click.self="close">
-    <div class="c-modal">
-      <h3 class="c-modal__title">{{ $t('modal.newView') }}</h3>
+  <BaseModal :show="true" :title="$t('modal.newView')" maxWidth="420px" @close="close">
+    <form @submit.prevent="handleSubmit" class="c-modal__form">
+      <div class="c-modal__field">
+        <label>{{ $t('modal.viewName') }}</label>
+        <input v-model="name" type="text" :placeholder="$t('modal.viewNamePlaceholder')" required autofocus />
+      </div>
 
-      <form @submit.prevent="handleSubmit" class="c-modal__form">
-        <div class="c-modal__field">
-          <label>{{ $t('modal.viewName') }}</label>
-          <input v-model="name" type="text" :placeholder="$t('modal.viewNamePlaceholder')" required autofocus />
+      <div class="c-modal__field">
+        <label>{{ $t('modal.columns') }} <span class="c-modal__hint">({{ cols }} {{ $t('modal.columnsCount') }})</span></label>
+        <input v-model.number="cols" type="range" min="4" max="16" step="2" />
+        <div class="c-modal__range-labels">
+          <span>4</span><span>8</span><span>12</span><span>16</span>
         </div>
+      </div>
 
-        <div class="c-modal__field">
-          <label>{{ $t('modal.columns') }} <span class="c-modal__hint">({{ cols }} {{ $t('modal.columnsCount') }})</span></label>
-          <input v-model.number="cols" type="range" min="4" max="16" step="2" />
-          <div class="c-modal__range-labels">
-            <span>4</span><span>8</span><span>12</span><span>16</span>
-          </div>
-        </div>
-
-        <div class="c-modal__field">
-          <label>{{ $t('modal.cellSize') }}</label>
-          <div class="c-modal__cell-sizes">
-            <button 
-              v-for="size in ['small', 'medium', 'large']" 
-              :key="size"
-              type="button"
-              :class="{ 'is-selected': cellSize === size }"
-              @click="cellSize = size as 'small' | 'medium' | 'large'"
-            >
-              {{ size }}
-            </button>
-          </div>
-        </div>
-
-        <p v-if="error" class="c-modal__error">{{ error }}</p>
-
-        <div class="c-modal__actions">
-          <button type="button" @click="close" class="btn-secondary">{{ $t('modal.cancel') }}</button>
-          <button type="submit" class="btn-primary" :disabled="loading">
-            {{ loading ? $t('modal.creating') : $t('modal.createView') }}
+      <div class="c-modal__field">
+        <label>{{ $t('modal.cellSize') }}</label>
+        <div class="c-modal__cell-sizes">
+          <button 
+            v-for="size in ['small', 'medium', 'large']" 
+            :key="size"
+            type="button"
+            :class="{ 'is-selected': cellSize === size }"
+            @click="cellSize = size as 'small' | 'medium' | 'large'"
+          >
+            {{ size }}
           </button>
         </div>
-      </form>
-    </div>
-  </div>
+      </div>
+
+      <p v-if="error" class="c-modal__error">{{ error }}</p>
+
+      <div class="c-modal__actions">
+        <BaseButton variant="secondary" @click="close">{{ $t('modal.cancel') }}</BaseButton>
+        <BaseButton type="submit" variant="primary" :loading="loading">
+          {{ loading ? $t('modal.creating') : $t('modal.createView') }}
+        </BaseButton>
+      </div>
+    </form>
+  </BaseModal>
 </template>
 
 <style scoped>
-.c-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-}
-
-.c-modal {
-  background: white;
-  padding: 28px;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 420px;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.2);
-}
-
-.c-modal__title {
-  margin: 0 0 24px 0;
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #1a1a2e;
-}
-
 .c-modal__field {
   margin-bottom: 20px;
 }
@@ -221,41 +190,5 @@ function close() {
   justify-content: flex-end;
   gap: 10px;
   margin-top: 24px;
-}
-
-.btn-primary {
-  background: #1a73e8;
-  color: white;
-  border: none;
-  padding: 10px 22px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.9rem;
-  transition: background 0.2s;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #1557b0;
-}
-
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-secondary {
-  background: transparent;
-  border: 1px solid #ddd;
-  padding: 10px 22px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  color: #555;
-  transition: all 0.2s;
-}
-
-.btn-secondary:hover {
-  background: #f5f5f5;
 }
 </style>

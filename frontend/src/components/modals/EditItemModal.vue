@@ -2,6 +2,8 @@
 import { ref, watch } from 'vue';
 import pb from '../../lib/pocketbase';
 import type { ItemsRecord } from '../../lib/pocketbase-types';
+import BaseModal from '../ui/BaseModal.vue';
+import BaseButton from '../ui/BaseButton.vue';
 
 interface ViewItem {
   id: string;
@@ -112,11 +114,8 @@ function close() {
 </script>
 
 <template>
-  <div v-if="show && item" class="c-modal-overlay" @click.self="close">
-    <div class="c-modal">
-      <h3 class="c-modal__title">{{ item.type === 'bookmark' ? $t('modal.editBookmark') : $t('modal.editMemo') }}</h3>
-      
-      <form @submit.prevent="handleSubmit" class="c-modal__form">
+  <BaseModal :show="show && !!item" :title="item?.type === 'bookmark' ? $t('modal.editBookmark') : $t('modal.editMemo')" maxWidth="600px" @close="close">
+      <form v-if="item" @submit.prevent="handleSubmit" class="c-modal__form">
         <div v-if="item.type === 'bookmark'" class="c-modal__field">
           <label>{{ $t('modal.url') }}</label>
           <div class="c-modal__input-group">
@@ -145,50 +144,16 @@ function close() {
         <p v-if="error" class="c-modal__error">{{ error }}</p>
 
         <div class="c-modal__actions">
-          <button type="button" @click="close" class="btn-secondary">{{ $t('modal.cancel') }}</button>
-          <button type="submit" class="btn-primary" :disabled="loading">
+          <BaseButton variant="secondary" @click="close">{{ $t('modal.cancel') }}</BaseButton>
+          <BaseButton type="submit" variant="primary" :loading="loading" @click="handleSubmit">
             {{ loading ? $t('modal.saving') : $t('modal.saveChanges') }}
-          </button>
+          </BaseButton>
         </div>
       </form>
-    </div>
-  </div>
+  </BaseModal>
 </template>
 
 <style scoped>
-.c-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px); /* Add blur for expanded feel */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-  padding: 20px;
-}
-
-.c-modal {
-  background: white;
-  padding: 30px;
-  border-radius: 16px;
-  width: 100%;
-  max-width: 600px; /* Wider for expanded feel */
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-}
-
-.c-modal__title {
-  margin-top: 0;
-  margin-bottom: 24px;
-  font-size: 1.4rem;
-  font-weight: 700;
-}
-
 .c-modal__field {
   margin-bottom: 20px;
 }
@@ -231,24 +196,6 @@ function close() {
   justify-content: flex-end;
   gap: 10px;
   margin-top: 20px;
-}
-
-.btn-primary {
-  background: #007bff;
-  color: white;
-  border: none;
-  padding: 10px 24px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.btn-secondary {
-  background: #eee;
-  border: none;
-  padding: 10px 24px;
-  border-radius: 6px;
-  cursor: pointer;
 }
 
 .c-modal__input-group {
