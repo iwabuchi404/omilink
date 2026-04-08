@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { AuthModel } from 'pocketbase';
-import type { ViewsResponse } from '../../lib/pocketbase-types';
+import type { UsersResponse, ViewsResponse } from '../../lib/pocketbase-types';
 
 defineProps<{
   isAuthenticated: boolean;
-  currentUser: AuthModel | null;
+  currentUser: UsersResponse | null;
   isEditMode: boolean;
   currentView: ViewsResponse | null;
   searchQuery: string;
@@ -99,7 +98,7 @@ const toggleLanguage = () => {
       <!-- User menu -->
       <div class="l-header__user-menu" @mouseenter="showUserMenu = true" @mouseleave="showUserMenu = false">
         <button class="l-header__user-btn">
-          <span class="l-header__avatar">{{ (currentUser?.name || currentUser?.email || '?')[0].toUpperCase() }}</span>
+          <span class="l-header__avatar">{{ (currentUser?.name || currentUser?.email || '?').charAt(0).toUpperCase() }}</span>
           <span class="l-header__username">{{ currentUser?.name || currentUser?.email }}</span>
           <span class="l-header__chevron">▾</span>
         </button>
