@@ -1,4 +1,4 @@
-import { ref, watch, onUnmounted, type Ref } from 'vue';
+import { ref, watch, type Ref } from 'vue';
 import interact from 'interactjs';
 import type { ViewsResponse } from '../../lib/pocketbase-types';
 
