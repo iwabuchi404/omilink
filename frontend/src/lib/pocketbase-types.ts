@@ -155,6 +155,7 @@ export type ViewsRecord = {
 	created: IsoAutoDateString
 	id: string
 	name: string
+	sort_order?: number
 	updated: IsoAutoDateString
 	user: RecordIdString
 }

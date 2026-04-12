@@ -18,6 +18,7 @@ const showAddViewModal = ref(false)
 const showToolsModal = ref(false)
 const searchQuery = ref('')
 const gridRef = ref<any>(null)
+const headerRef = ref<any>(null)
 
 const sharedUrl = ref('')
 const sharedTitle = ref('')
@@ -26,9 +27,20 @@ const views = ref<ViewsResponse[]>([])
 const currentViewId = ref<string | null>(null)
 const currentView = computed(() => views.value.find(v => v.id === currentViewId.value) || null)
 
+// Tab Position Support
+type TabPosition = 'top' | 'bottom';
+const tabPosition = ref<TabPosition>((localStorage.getItem('omi_tab_position') as TabPosition) || 'top');
+
+const toggleTabPosition = () => {
+  tabPosition.value = tabPosition.value === 'top' ? 'bottom' : 'top';
+  localStorage.setItem('omi_tab_position', tabPosition.value);
+};
+
 // Provide View Info Globally
 provide('views', views)
 provide('fetchViews', fetchViews)
+provide('tabPosition', tabPosition)
+provide('toggleTabPosition', toggleTabPosition)
 
 const toggleEditMode = () => {
   isEditMode.value = !isEditMode.value
@@ -50,7 +62,10 @@ const handleViewCreated = (view: ViewsResponse) => {
 async function fetchViews() {
   if (!isAuthenticated.value) return;
   try {
-    let records = await pb.collection('views').getFullList<ViewsResponse>({ sort: 'created' });
+    // Sort by sort_order first, then created date
+    let records = await pb.collection('views').getFullList<ViewsResponse>({ 
+      sort: 'sort_order,created' 
+    });
     if (records.length === 0) {
       const home = await pb.collection('views').create<ViewsResponse>({
         user: currentUser.value?.id,
@@ -68,6 +83,26 @@ async function fetchViews() {
     }
   } catch (e) {
     console.error('Failed to fetch views', e);
+  }
+}
+
+async function handleTabReorder(newViews: ViewsResponse[]) {
+  // Update local state immediately for responsiveness
+  views.value = [...newViews];
+  
+  try {
+    // Update each view's sort_order in PocketBase
+    const promises = newViews.map((view, index) => {
+      // Only update if sort_order actually needs to change to save API calls
+      // Assuming sort_order is a Number field. Index + 1 is our new order.
+      return pb.collection('views').update(view.id, { sort_order: index + 1 });
+    });
+    await Promise.all(promises);
+    console.log('Tab order saved successfully');
+  } catch (err) {
+    console.error('Failed to save tab order:', err);
+    // Optionally rollback on failure
+    fetchViews();
   }
 }
 
@@ -99,6 +134,7 @@ onMounted(async () => {
 
 <template>
   <AppHeader 
+    ref="headerRef"
     :is-authenticated="true"
     :current-user="currentUser"
     :is-edit-mode="isEditMode"
@@ -111,14 +147,16 @@ onMounted(async () => {
   />
 
   <ViewTabs 
-    v-if="currentView"
+    v-if="currentView && tabPosition === 'top'"
     :views="views"
     :current-view-id="currentViewId"
+    :is-edit-mode="isEditMode"
     @update:current-view-id="currentViewId = $event"
     @add-view="showAddViewModal = true"
+    @reorder="handleTabReorder"
   />
 
-  <main class="l-main">
+  <main class="l-main" :class="{ 'has-tabs-bottom': tabPosition === 'bottom' }">
     <GridView 
       v-if="currentView" 
       ref="gridRef" 
@@ -126,6 +164,7 @@ onMounted(async () => {
       :current-view="currentView" 
       :views="views"
       :search-query="searchQuery"
+      @scroll="headerRef?.handleScroll($event)"
     />
     
     <AddItemModal 
@@ -150,4 +189,28 @@ onMounted(async () => {
       @close="showToolsModal = false"
     />
   </main>
+
+  <ViewTabs 
+    v-if="currentView && tabPosition === 'bottom'"
+    :views="views"
+    :current-view-id="currentViewId"
+    :is-edit-mode="isEditMode"
+    @update:current-view-id="currentViewId = $event"
+    @add-view="showAddViewModal = true"
+    @reorder="handleTabReorder"
+    class="is-bottom"
+  />
 </template>
+
+<style scoped>
+.l-main {
+  flex-grow: 1;
+  position: relative;
+  overflow: hidden;
+  transition: padding 0.3s ease;
+}
+
+.l-main.has-tabs-bottom {
+  padding-bottom: 0px; /* ViewTabs has its own height and safe areas */
+}
+</style>

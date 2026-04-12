@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, inject } from 'vue';
+import { ref, computed, inject, type Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { UsersResponse, ViewsResponse } from '../../lib/pocketbase-types';
 import type { Theme } from '../../composables/useTheme';
@@ -23,11 +23,33 @@ const emit = defineEmits<{
 const showUserMenu = ref(false);
 const showMobileSearch = ref(false);
 
-const { locale } = useI18n();
+const { t, locale } = useI18n();
 const currentLanguage = computed(() => locale.value.toUpperCase());
 
-const theme = inject('theme') as { value: Theme };
+const theme = inject('theme') as Ref<Theme>;
 const toggleTheme = inject('toggleTheme') as () => void;
+const tabPosition = inject('tabPosition') as Ref<'top' | 'bottom'>;
+const toggleTabPosition = inject('toggleTabPosition') as () => void;
+
+const isHidden = ref(false);
+const lastScrollTop = ref(0);
+
+const handleScroll = (scrollTop: number) => {
+  if (window.innerWidth > 768) {
+    isHidden.value = false;
+    return;
+  }
+  
+  if (scrollTop > lastScrollTop.value && scrollTop > 100) {
+    isHidden.value = true;
+  } else {
+    isHidden.value = false;
+  }
+  lastScrollTop.value = scrollTop;
+};
+
+// Expose handleScroll to parent (Dashboard)
+defineExpose({ handleScroll });
 
 const toggleLanguage = () => {
   const newLang = locale.value === 'en' ? 'ja' : 'en';
@@ -43,7 +65,7 @@ const themeIcon = computed(() => {
 </script>
 
 <template>
-  <header class="l-header" :class="{ 'is-edit-mode': isEditMode }">
+  <header class="l-header" :class="{ 'is-edit-mode': isEditMode, 'is-hidden': isHidden }">
     <div class="l-header__logo">
       <span class="l-header__logo-icon">🔗</span>
       OmiLink
@@ -126,6 +148,9 @@ const themeIcon = computed(() => {
           <button class="l-header__dropdown-item" @click="toggleTheme">
             <span>{{ themeIcon }}</span> {{ $t('header.theme') }}: {{ theme }}
           </button>
+          <button class="l-header__dropdown-item" @click="toggleTabPosition">
+            <span>{{ tabPosition === 'top' ? '⬇️' : '⬆️' }}</span> {{ t('header.tabPosition') }}: {{ t(`header.${tabPosition}`) }}
+          </button>
           <button class="l-header__dropdown-item" @click="toggleLanguage">
             <span>🌐</span> {{ $t('header.language') }}: {{ currentLanguage }}
           </button>
@@ -153,8 +178,12 @@ const themeIcon = computed(() => {
   border-bottom: 1px solid var(--color-border);
   box-shadow: var(--shadow-sm);
   flex-shrink: 0;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
   z-index: 1000;
+}
+
+.l-header.is-hidden {
+  transform: translateY(-100%);
 }
 
 .l-header.is-edit-mode {

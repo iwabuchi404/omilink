@@ -32,7 +32,10 @@
     "search": "Search",
     "editLayout": "Edit Layout",
     "finishEditing": "Finish Editing",
-    "addItemTitle": "Add Item"
+    "addItemTitle": "Add Item",
+    "tabPosition": "Tab Position",
+    "top": "Top",
+    "bottom": "Bottom"
   },
   "modal": {
     "newItem": "New Item",

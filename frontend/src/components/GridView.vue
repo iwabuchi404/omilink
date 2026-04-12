@@ -12,6 +12,7 @@ type ExpandedViewItem = PlacementsResponse<{ item: ItemsResponse }>;
 
 const emit = defineEmits<{
   (e: 'move-success'): void;
+  (e: 'scroll', scrollTop: number): void;
 }>();
 
 const props = defineProps<{
@@ -44,6 +45,11 @@ function openAddToViewModal(item: ViewItem) {
   addingItem.value = item;
   showAddToViewModal.value = true;
 }
+
+const onScroll = (e: Event) => {
+  const target = e.target as HTMLElement;
+  emit('scroll', target.scrollTop);
+};
 
 const filteredItems = computed(() => {
   if (!props.searchQuery) return items.value;
@@ -174,7 +180,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="c-grid-container p-grid" :class="{ 'is-edit-mode': isEditMode }">
+  <div class="c-grid-container p-grid" :class="{ 'is-edit-mode': isEditMode }" @scroll.passive="onScroll">
     <div v-if="loading" class="p-grid__loading">{{ $t('grid.loading') }}</div>
     <div v-else class="p-grid__container" 
          :class="{ 'is-drag-invalid': dragPreview && !dragPreview.isValid }"

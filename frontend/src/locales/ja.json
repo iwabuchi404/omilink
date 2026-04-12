@@ -32,7 +32,10 @@
     "search": "検索",
     "editLayout": "レイアウトを編集",
     "finishEditing": "編集を終了",
-    "addItemTitle": "アイテムを追加"
+    "addItemTitle": "アイテムを追加",
+    "tabPosition": "タブの位置",
+    "top": "上部",
+    "bottom": "下部"
   },
   "modal": {
     "newItem": "アイテム追加",
