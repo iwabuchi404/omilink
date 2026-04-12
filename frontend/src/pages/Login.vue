@@ -126,95 +126,132 @@ async function handleGoogleLogin() {
   align-items: center;
   height: 100vh;
   width: 100vw;
-  background-color: #f0f2f5;
+  background-color: var(--color-bg-page);
   position: relative;
+  transition: background-color 0.3s ease;
 }
 
 .c-auth-header {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: 24px;
+  right: 24px;
   display: flex;
 }
 
 .c-auth-lang-btn {
-  background: white;
-  border: 1px solid #ddd;
-  padding: 8px 12px;
-  border-radius: 8px;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  padding: 8px 16px;
+  border-radius: 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-weight: bold;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--color-text-main);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.c-auth-lang-btn:hover {
+  background-color: var(--color-bg-page);
+  border-color: var(--color-text-muted);
 }
 
 .c-auth-card {
   width: 100%;
-  max-width: 400px;
-  padding: 30px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  max-width: 420px;
+  padding: 48px;
+  background: var(--color-bg-modal);
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border);
 }
 
 .c-auth-card__title {
   text-align: center;
-  margin-bottom: 25px;
-  color: #333;
+  margin-bottom: 32px;
+  color: var(--color-text-main);
+  font-weight: 800;
+  font-size: 1.75rem;
+  letter-spacing: -0.02em;
 }
 
 .c-auth-card__field {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .c-auth-card__field label {
   display: block;
   font-size: 0.85rem;
-  margin-bottom: 5px;
-  color: #666;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--color-text-muted);
 }
 
 .c-auth-card__field input {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  padding: 12px 16px;
+  background-color: var(--color-bg-page);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
   font-size: 1rem;
+  color: var(--color-text-main);
+  transition: all 0.2s ease;
+}
+
+.c-auth-card__field input:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1);
 }
 
 .c-auth-card__error {
-  color: #dc3545;
+  color: var(--color-danger);
   font-size: 0.85rem;
-  margin-bottom: 15px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: rgba(220, 53, 69, 0.05);
+  border-radius: 8px;
 }
 
 .c-auth-card__button {
   width: 100%;
-  padding: 12px;
-  background: #007bff;
+  padding: 14px;
+  background: var(--color-primary);
   color: white;
   border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: bold;
+  border-radius: 10px;
+  font-size: 1.05rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 6px rgba(26, 115, 232, 0.2);
 }
 
-.c-auth-card__button:hover {
-  background: #0056b3;
+.c-auth-card__button:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  box-shadow: 0 6px 12px rgba(26, 115, 232, 0.3);
+  transform: translateY(-1px);
+}
+
+.c-auth-card__button:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .c-auth-card__button:disabled {
-  background: #ccc;
+  background: var(--color-border);
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .c-auth-card__divider {
   text-align: center;
-  margin: 20px 0;
+  margin: 24px 0;
   position: relative;
 }
+
 .c-auth-card__divider::before {
   content: "";
   position: absolute;
@@ -222,56 +259,75 @@ async function handleGoogleLogin() {
   left: 0;
   right: 0;
   height: 1px;
-  background: #eee;
+  background: var(--color-border);
   z-index: 1;
 }
+
 .c-auth-card__divider span {
-  background: white;
-  padding: 0 10px;
-  color: #999;
+  background: var(--color-bg-modal);
+  padding: 0 16px;
+  color: var(--color-text-muted);
   font-size: 0.85rem;
+  font-weight: 600;
   position: relative;
   z-index: 2;
 }
 
 .c-auth-card__google-btn {
   width: 100%;
-  padding: 10px;
-  background: white;
-  color: #444;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  padding: 12px;
+  background: var(--color-bg-surface);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  transition: background 0.2s;
+  gap: 12px;
+  transition: all 0.2s ease;
 }
+
 .c-auth-card__google-btn:hover {
-  background: #f8f9fa;
+  background: var(--color-bg-page);
+  border-color: var(--color-text-muted);
 }
+
 .c-auth-card__google-icon {
   width: 20px;
   height: 20px;
 }
 
 .c-auth-card__footer {
-  margin-top: 20px;
+  margin-top: 24px;
   text-align: center;
 }
 
 .c-auth-card__switch {
   background: none;
   border: none;
-  color: #007bff;
+  color: var(--color-primary);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 600;
 }
 
 .c-auth-card__switch:hover {
   text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .c-auth-card {
+    border-radius: 0;
+    height: 100vh;
+    max-width: none;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border: none;
+  }
 }
 </style>

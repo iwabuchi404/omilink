@@ -35,17 +35,19 @@ defineEmits<{
 <style scoped>
 .l-sub-header {
   flex-shrink: 0;
-  background-color: #fff;
-  border-bottom: 1px solid #e8eaed;
-  padding: 0 20px;
+  background-color: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: 0 24px;
+  transition: background-color 0.3s ease;
 }
 
 .c-view-tabs {
   display: flex;
-  gap: 4px;
+  gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
-  align-items: stretch;
+  align-items: center;
+  height: 48px;
 }
 
 .c-view-tabs::-webkit-scrollbar {
@@ -55,56 +57,52 @@ defineEmits<{
 .c-view-tabs__tab {
   background: none;
   border: none;
-  padding: 10px 14px;
+  padding: 0 16px;
+  height: 100%;
   cursor: pointer;
-  color: #666;
-  font-weight: 500;
-  font-size: 0.875rem;
-  border-bottom: 2px solid transparent;
-  transition: all 0.2s;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s ease;
   white-space: nowrap;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  letter-spacing: -0.01em;
 }
 
 .c-view-tabs__tab:hover {
-  color: #333;
-  background-color: #f5f5f5;
-  border-radius: 6px 6px 0 0;
+  color: var(--color-text-main);
+  background-color: var(--color-bg-page);
 }
 
 .c-view-tabs__tab.is-active {
-  color: #1a73e8;
-  border-bottom-color: #1a73e8;
-  font-weight: 600;
-}
-
-.c-view-tabs__icon {
-  font-size: 0.9rem;
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
 }
 
 .c-view-tabs__add-btn {
   display: flex;
   align-items: center;
-  gap: 4px;
-  margin-left: 6px;
-  padding: 6px 12px;
-  align-self: center;
-  background: none;
-  border: 1px dashed #ccc;
-  border-radius: 6px;
+  gap: 6px;
+  margin-left: 8px;
+  padding: 6px 14px;
+  background: var(--color-bg-page);
+  border: 1px dashed var(--color-border);
+  border-radius: 8px;
   cursor: pointer;
-  color: #999;
-  font-size: 0.8rem;
-  font-weight: 500;
-  transition: all 0.2s;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .c-view-tabs__add-btn:hover {
-  border-color: #1a73e8;
-  color: #1a73e8;
-  background-color: #e8f0fe;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background-color: var(--color-bg-surface);
+  box-shadow: var(--shadow-sm);
 }
 </style>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 
 
 type ItemType = 'bookmark' | 'memo';
@@ -29,12 +30,21 @@ defineEmits<{
   (e: 'delete'): void;
   (e: 'addToView'): void;
   (e: 'edit'): void;
+  (e: 'view-memo'): void;
 }>();
 
 // Popover ID must be unique per card
 const popoverId = `card-menu-${props.item.id}`;
 // Anchor name must also be unique
 const anchorName = `--anchor-${props.item.id}`;
+
+const displayTitle = computed(() => {
+  if (props.item.title && props.item.title !== 'Untitled') return props.item.title;
+  if (props.item.type === 'memo' && props.item.content) {
+    return props.item.content.split('\n')[0];
+  }
+  return props.item.url || 'Untitled';
+});
 </script>
 
 <template>
@@ -49,12 +59,15 @@ const anchorName = `--anchor-${props.item.id}`;
       :class="{ 
         'is-clickable': !isEditMode && item.type === 'memo',
         'is-tiny': item.w === 1 && item.h === 1,
-        'is-small': item.w * item.h <= 2 && !(item.w === 1 && item.h === 1),
-        'is-large': item.w * item.h >= 4
+        'is-tall': item.h > item.w && item.w === 1 && item.h >= 2,
+        'is-wide': item.w > item.h && item.h === 1 && item.w >= 2,
+        'is-small': (item.w * item.h === 2) && !(item.w === 1 || item.h === 1), // unlikely but for safety
+        'is-medium': item.w * item.h > 2 && item.w * item.h <= 4 && !(item.w === 1 || item.h === 1),
+        'is-large': item.w * item.h > 4
       }"
-      :title="`${item.title && item.title !== 'Untitled' ? item.title : (item.url || 'Untitled')}${item.url && item.type === 'bookmark' ? '\n' + item.url : ''}${item.content ? '\n\n' + item.content : ''}`"
+      :title="`${displayTitle}${item.url && item.type === 'bookmark' ? '\n' + item.url : ''}${item.content ? '\n\n' + item.content : ''}`"
       @mousedown.stop="(!isEditMode && item.type === 'bookmark') ? null : $event.preventDefault()"
-      @click="!isEditMode && item.type === 'memo' ? $emit('edit') : null"
+      @click="!isEditMode && item.type === 'memo' ? $emit('view-memo') : null"
     >
       <!-- OGP Image (bookmark only, 4 slots or more) -->
       <div 
@@ -74,7 +87,7 @@ const anchorName = `--anchor-${props.item.id}`;
           <span v-else class="c-card__favicon">📝</span>
           
           <h4 class="c-card__title">
-            {{ (item.title && item.title !== 'Untitled') ? item.title : (item.url || 'Untitled') }}
+            {{ displayTitle }}
           </h4>
         </div>
         
@@ -92,7 +105,7 @@ const anchorName = `--anchor-${props.item.id}`;
         class="c-card__menu-btn"
         :popovertarget="popoverId"
         :style="{ 'anchor-name': anchorName }"
-        title="Options"
+        :title="$t('grid.cardOptions')"
       >
         ⋯
       </button>
@@ -110,7 +123,7 @@ const anchorName = `--anchor-${props.item.id}`;
           popovertargetaction="hide"
           @click="$emit('edit')"
         >
-          <span>✏️</span> Edit Details
+          <span>✏️</span> {{ $t('grid.editDetails') }}
         </button>
         <div class="c-card-popover__divider"></div>
         <button
@@ -120,7 +133,7 @@ const anchorName = `--anchor-${props.item.id}`;
           popovertargetaction="hide"
           @click="$emit('addToView')"
         >
-          <span>➕</span> Add to another view
+          <span>➕</span> {{ $t('grid.addToView') }}
         </button>
         <div class="c-card-popover__divider"></div>
         <button
@@ -129,7 +142,7 @@ const anchorName = `--anchor-${props.item.id}`;
           popovertargetaction="hide"
           @click="$emit('delete')"
         >
-          <span>🗑️</span> Move to Trash
+          <span>🗑️</span> {{ $t('grid.moveToTrash') }}
         </button>
       </div>
     </div>
@@ -140,22 +153,28 @@ const anchorName = `--anchor-${props.item.id}`;
 /* ===================== Card Base ===================== */
 .c-card {
   position: relative;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1);
-  transition: box-shadow 0.2s;
-  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: var(--color-card-bg);
   width: 100%;
   height: 100%;
+  border: 1px solid var(--color-border);
+}
+
+.c-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-text-muted);
 }
 
 .c-card.is-bookmark {
-  border: 1px solid #eaeaea;
+  border-color: var(--color-card-border);
 }
 
 .c-card.is-memo {
-  background-color: #fef3c7;
-  border: 1px solid #fde68a;
-  box-shadow: 2px 4px 8px rgba(0,0,0,0.06);
+  background-color: var(--color-memo-bg);
+  border-color: var(--color-memo-border);
 }
 
 /* ===================== Content Wrapper ===================== */
@@ -165,9 +184,9 @@ const anchorName = `--anchor-${props.item.id}`;
   width: 100%;
   height: 100%;
   text-decoration: none;
-  color: inherit;
+  color: var(--color-text-main);
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 .is-bookmark .c-card__content-wrapper {
@@ -175,15 +194,15 @@ const anchorName = `--anchor-${props.item.id}`;
 }
 
 .is-bookmark .c-card__content-wrapper:hover {
-  background-color: #f9f9fc;
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+[data-theme="dark"] .is-bookmark .c-card__content-wrapper:hover {
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .c-card__content-wrapper.is-clickable {
   cursor: pointer;
-}
-
-.c-card__content-wrapper.is-clickable:hover {
-  background-color: #fdf2f8; /* Subtle pink/yellow tint for memo hover */
 }
 
 /* ===================== OGP Image ===================== */
@@ -193,8 +212,8 @@ const anchorName = `--anchor-${props.item.id}`;
   min-height: 80px;
   background-size: cover;
   background-position: center;
-  background-color: #f3f4f6;
-  border-bottom: 1px solid #eee;
+  background-color: var(--color-bg-page);
+  border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
 }
 
@@ -204,31 +223,90 @@ const anchorName = `--anchor-${props.item.id}`;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding: 8px;
+  padding: 12px;
+  gap: 8px;
+}
+
+.is-tiny .c-card__inner {
+  padding: 0;
+  justify-content: center;
+  align-items: center;
+}
+
+.is-tall .c-card__inner {
+  padding: 12px 8px;
+  text-align: center;
+  justify-content: center;
+}
+
+.is-tall .c-card__header {
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.is-tall .c-card__title {
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  font-size: 0.85rem;
+}
+
+.is-wide .c-card__inner {
+  flex-direction: row;
+  align-items: center;
+  padding: 0 16px;
+  gap: 16px;
+}
+
+.is-wide .c-card__header {
+  flex: 1;
+  gap: 12px;
+}
+
+.is-wide .c-card__body {
+  margin-top: 0;
+  flex: 2;
+  border-left: 1px solid var(--color-border);
+  padding-left: 16px;
+  display: flex;
+  align-items: center;
 }
 
 .c-card__header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   overflow: hidden;
 }
 
 .c-card__favicon {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 16px;
+}
+
+.is-tall .c-card__favicon {
+  width: 32px;
+  height: 32px;
+  font-size: 24px;
+}
+
+.is-wide .c-card__favicon {
+  width: 24px;
+  height: 24px;
+  font-size: 20px;
 }
 
 .c-card__title {
   margin: 0;
-  font-size: 0.85rem;
-  font-weight: 600;
-  line-height: 1.3;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--color-text-main);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -237,22 +315,28 @@ const anchorName = `--anchor-${props.item.id}`;
   word-break: break-all;
 }
 
+.is-wide .c-card__title {
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  font-size: 1rem;
+}
+
 .c-card__body {
-  margin-top: 6px;
+  margin-top: 8px;
   flex: 1;
   overflow: hidden;
 }
 
 .is-memo .c-card__title {
-  font-weight: bold;
-  font-size: 0.9rem;
+  font-weight: 800;
+  font-size: 1rem;
 }
 
 .c-card__content {
   margin: 0;
-  font-size: 0.75rem;
-  color: #666;
-  line-height: 1.4;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   line-clamp: 3;
@@ -261,37 +345,34 @@ const anchorName = `--anchor-${props.item.id}`;
 }
 
 .is-memo .c-card__content {
-  color: #4b5563;
-  font-size: 0.8rem;
+  color: var(--color-text-main);
+  font-size: 0.85rem;
   -webkit-line-clamp: unset;
   line-clamp: none;
   display: block;
 }
 
+.is-tall.is-memo .c-card__content {
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  display: -webkit-box;
+}
+
 .c-card__content-url {
   margin: 0;
-  font-size: 0.68rem;
-  color: #0066cc;
+  font-size: 0.7rem;
+  color: var(--color-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  opacity: 0.8;
 }
 
 .is-small .c-card__title {
-  font-size: 0.8rem;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-}
-
-.is-small .c-card__inner {
-  justify-content: flex-start;
+  font-size: 0.85rem;
 }
 
 /* 1x1 Tiny Card (App Icon Style) */
-.is-tiny .c-card__inner {
-  padding: 0;
-}
-
 .is-tiny .c-card__header {
   height: 100%;
   width: 100%;
@@ -300,45 +381,80 @@ const anchorName = `--anchor-${props.item.id}`;
 }
 
 .is-tiny .c-card__favicon {
-  width: 32px;
-  height: 32px;
-  font-size: 28px;
-  border-radius: 4px; /* Slight rounding for favicon */
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.is-tiny .c-card__title {
-  display: none; /* Hide text completely to show only icon like an app */
+  width: 40px;
+  height: 40px;
+  font-size: 32px;
+  border-radius: 8px;
+  background-color: var(--color-bg-surface);
+  box-shadow: var(--shadow-sm);
 }
 
 /* ===================== Edit Overlay & Menu Button ===================== */
 .c-card__edit-overlay {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 8px;
+  right: 8px;
   z-index: 10;
 }
 
 .c-card__menu-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: 1px solid rgba(0,0,0,0.15);
-  background: rgba(255,255,255,0.92);
-  backdrop-filter: blur(4px);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-modal);
+  backdrop-filter: blur(8px);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
-  color: #444;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  transition: all 0.15s;
+  font-size: 1.2rem;
+  color: var(--color-text-main);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s;
   padding: 0;
 }
 
 .c-card__menu-btn:hover {
-  background: white;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  background: var(--color-bg-page);
+  transform: scale(1.1);
+  box-shadow: var(--shadow-md);
+}
+
+.c-card-popover {
+  background: var(--color-bg-modal);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: var(--shadow-lg);
+}
+
+.c-card-popover__item {
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-size: 0.9rem;
+  color: var(--color-text-main);
+  cursor: pointer;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.c-card-popover__item:hover {
+  background-color: var(--color-bg-page);
+}
+
+.c-card-popover__item.is-danger {
+  color: var(--color-danger);
+}
+
+.c-card-popover__divider {
+  height: 1px;
+  background-color: var(--color-border);
+  margin: 4px 6px;
 }
 </style>

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { UsersResponse, ViewsResponse } from '../../lib/pocketbase-types';
+import type { Theme } from '../../composables/useTheme';
 
 defineProps<{
   isAuthenticated: boolean;
@@ -25,15 +26,24 @@ const showMobileSearch = ref(false);
 const { locale } = useI18n();
 const currentLanguage = computed(() => locale.value.toUpperCase());
 
+const theme = inject('theme') as { value: Theme };
+const toggleTheme = inject('toggleTheme') as () => void;
+
 const toggleLanguage = () => {
   const newLang = locale.value === 'en' ? 'ja' : 'en';
   locale.value = newLang;
   localStorage.setItem('app-language', newLang);
 };
+
+const themeIcon = computed(() => {
+  if (theme.value === 'light') return '☀️';
+  if (theme.value === 'dark') return '🌙';
+  return '🌓';
+});
 </script>
 
 <template>
-  <header class="l-header">
+  <header class="l-header" :class="{ 'is-edit-mode': isEditMode }">
     <div class="l-header__logo">
       <span class="l-header__logo-icon">🔗</span>
       OmiLink
@@ -57,7 +67,7 @@ const toggleLanguage = () => {
       <button 
         class="l-header__btn"
         @click="toggleLanguage"
-        title="Change Language"
+        :title="$t('header.changeLanguage')"
       >
         <span class="l-header__btn-icon">🌐</span>
         <span class="l-header__btn-text"> {{ currentLanguage }}</span>
@@ -69,16 +79,20 @@ const toggleLanguage = () => {
         class="l-header__btn l-header__btn--search-toggle"
         @click="showMobileSearch = !showMobileSearch"
         :class="{ 'is-active': showMobileSearch }"
-        title="Search"
+        :title="$t('header.search')"
       >
         <span class="l-header__btn-icon">🔍</span>
       </button>
+
+      <div v-if="isEditMode" class="l-header__edit-badge">
+        {{ $t('header.editingMode') }}
+      </div>
 
       <button 
         class="l-header__btn"
         :class="{ 'is-active': isEditMode }"
         @click="$emit('toggleEditMode')"
-        :title="isEditMode ? 'Finish Editing' : 'Edit Layout'"
+        :title="isEditMode ? $t('header.finishEditing') : $t('header.editLayout')"
       >
         <span class="l-header__btn-icon" v-if="isEditMode">✓</span>
         <span class="l-header__btn-icon" v-else>✎</span>
@@ -89,7 +103,7 @@ const toggleLanguage = () => {
         class="l-header__btn l-header__btn--add"
         @click="$emit('showAddModal')" 
         :disabled="!currentView"
-        title="Add Item"
+        :title="$t('header.addItemTitle')"
       >
         <span class="l-header__btn-icon">+</span>
         <span class="l-header__btn-text">{{ $t('header.btnAdd') }}</span>
@@ -99,22 +113,25 @@ const toggleLanguage = () => {
       <div class="l-header__user-menu" @mouseenter="showUserMenu = true" @mouseleave="showUserMenu = false">
         <button class="l-header__user-btn">
           <span class="l-header__avatar">{{ (currentUser?.name || currentUser?.email || '?').charAt(0).toUpperCase() }}</span>
-          <span class="l-header__username">{{ currentUser?.name || currentUser?.email }}</span>
+          <span class="l-header__username">{{ currentUser?.name || currentUser?.email || $t('header.defaultUser') }}</span>
           <span class="l-header__chevron">▾</span>
         </button>
         
         <div v-if="showUserMenu" class="l-header__dropdown">
           <div class="l-header__dropdown-user">
-            <span class="l-header__dropdown-name">{{ currentUser?.name || 'User' }}</span>
+            <span class="l-header__dropdown-name">{{ currentUser?.name || $t('header.defaultUser') }}</span>
             <span class="l-header__dropdown-email">{{ currentUser?.email }}</span>
           </div>
           <div class="l-header__dropdown-divider"></div>
+          <button class="l-header__dropdown-item" @click="toggleTheme">
+            <span>{{ themeIcon }}</span> {{ $t('header.theme') }}: {{ theme }}
+          </button>
           <button class="l-header__dropdown-item" @click="toggleLanguage">
-            <span>🌐</span> Language: {{ currentLanguage }}
+            <span>🌐</span> {{ $t('header.language') }}: {{ currentLanguage }}
           </button>
           <div class="l-header__dropdown-divider"></div>
           <button class="l-header__dropdown-item" @click="$emit('showToolsModal')">
-            <span>📦</span> Tools & App
+            <span>📦</span> {{ $t('header.tools') }}
           </button>
           <div class="l-header__dropdown-divider"></div>
           <button class="l-header__dropdown-item" @click="$emit('logout')">
@@ -130,20 +147,26 @@ const toggleLanguage = () => {
 .l-header {
   display: flex;
   align-items: center;
-  padding: 0 20px;
-  height: 56px;
-  background-color: #fff;
-  border-bottom: 1px solid #e8eaed;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  padding: 0 24px;
+  height: 64px;
+  background-color: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
   flex-shrink: 0;
-  transition: height 0.3s;
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.l-header.is-edit-mode {
+  border-bottom-color: var(--color-primary);
+  border-bottom-width: 2px;
 }
 
 @media (max-width: 768px) {
   .l-header {
     flex-wrap: wrap;
     height: auto;
-    padding: 8px 16px;
+    padding: 12px 16px;
     gap: 8px;
   }
 }
@@ -151,15 +174,15 @@ const toggleLanguage = () => {
 .l-header__logo {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-weight: 700;
-  font-size: 1.1rem;
-  letter-spacing: 0.02em;
-  color: #1a1a2e;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+  color: var(--color-text-main);
 }
 
 .l-header__logo-icon {
-  font-size: 1.3rem;
+  font-size: 1.5rem;
 }
 
 .l-header__search {
@@ -172,10 +195,10 @@ const toggleLanguage = () => {
 
 @media (max-width: 768px) {
   .l-header__search {
-    display: none; /* Hidden by default on mobile */
+    display: none;
     order: 3;
     width: 100%;
-    margin: 4px 0 8px 0;
+    margin: 4px 0 4px 0;
     max-width: none;
   }
 
@@ -188,22 +211,24 @@ const toggleLanguage = () => {
   display: flex;
   align-items: center;
   width: 100%;
-  background-color: #f1f3f4;
-  border-radius: 8px;
-  padding: 0 12px;
-  height: 40px;
-  transition: background-color 0.2s, box-shadow 0.2s;
+  background-color: var(--color-bg-page);
+  border-radius: 10px;
+  padding: 0 16px;
+  height: 44px;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
 
 .c-search-bar:focus-within {
-  background-color: #fff;
-  box-shadow: 0 1px 1px 0 rgba(65,69,73,0.3), 0 1px 3px 1px rgba(65,69,73,0.15);
+  background-color: var(--color-bg-surface);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
 }
 
 .c-search-bar__icon {
   font-size: 1rem;
-  color: #5f6368;
-  margin-right: 8px;
+  color: var(--color-text-muted);
+  margin-right: 10px;
   pointer-events: none;
 }
 
@@ -213,14 +238,14 @@ const toggleLanguage = () => {
   background: transparent;
   outline: none;
   font-size: 1rem;
-  color: #3c4043;
+  color: var(--color-text-main);
   width: 100%;
 }
 
 .c-search-bar__clear {
   background: none;
   border: none;
-  color: #5f6368;
+  color: var(--color-text-muted);
   cursor: pointer;
   padding: 4px;
   font-size: 0.8rem;
@@ -237,32 +262,38 @@ const toggleLanguage = () => {
 .l-header__actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
   .l-header__actions {
     margin-left: auto;
-    gap: 4px;
+    gap: 6px;
   }
 }
 
 .l-header__btn {
-  padding: 7px 14px;
+  height: 40px;
+  padding: 0 16px;
   cursor: pointer;
-  background: transparent;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
   transition: all 0.2s ease;
   font-size: 0.875rem;
-  font-weight: 500;
-  color: #555;
+  font-weight: 600;
+  color: var(--color-text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
 }
 
 .l-header__btn:hover:not(:disabled) {
-  background-color: #f5f5f5;
-  border-color: #ccc;
+  background-color: var(--color-bg-page);
+  border-color: var(--color-text-muted);
 }
 
 .l-header__btn:disabled {
@@ -271,33 +302,43 @@ const toggleLanguage = () => {
 }
 
 .l-header__btn.is-active {
-  background-color: #1a73e8;
+  background-color: var(--color-primary);
   color: white;
-  border-color: #1557b0;
+  border-color: var(--color-primary);
 }
 
 .l-header__btn--add {
-  background-color: #1a73e8;
+  background-color: var(--color-primary);
   color: white;
-  border-color: #1557b0;
+  border-color: var(--color-primary);
 }
 
 .l-header__btn--add:hover:not(:disabled) {
-  background-color: #1557b0;
-  border-color: #1245a0;
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.l-header__btn--theme {
+  padding: 0;
+  width: 40px;
 }
 
 @media (max-width: 768px) {
   .l-header__btn {
-    padding: 6px 10px;
+    padding: 0 10px;
     font-size: 0.8rem;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+    height: 36px;
   }
   
   .l-header__btn--search-toggle {
     display: flex;
+    padding: 0;
+    width: 36px;
+  }
+
+  .l-header__btn--add .l-header__btn-text,
+  .l-header__btn .l-header__btn-text {
+    display: none;
   }
 
   .l-header__username {
@@ -306,7 +347,7 @@ const toggleLanguage = () => {
 }
 
 .l-header__btn--search-toggle {
-  display: none; /* Hidden on desktop */
+  display: none;
 }
 
 /* User Menu */
@@ -317,101 +358,139 @@ const toggleLanguage = () => {
 .l-header__user-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 5px 10px;
+  gap: 10px;
+  padding: 4px 8px;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: 8px;
   background: transparent;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .l-header__user-btn:hover {
-  background-color: #f5f5f5;
-  border-color: #e0e0e0;
+  background-color: var(--color-bg-page);
+  border-color: var(--color-border);
 }
 
 .l-header__avatar {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1a73e8, #6c35de);
+  background: var(--color-primary);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.l-header__edit-badge {
+  background-color: rgba(26, 115, 232, 0.1);
+  color: var(--color-primary);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(26, 115, 232, 0.2);
+  animation: pulse-soft 2s infinite;
+  display: flex;
+  align-items: center;
+}
+
+@keyframes pulse-soft {
+  0% { opacity: 0.8; }
+  50% { opacity: 1; }
+  100% { opacity: 0.8; }
 }
 
 .l-header__username {
-  font-size: 0.875rem;
-  color: #333;
-  max-width: 120px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+  max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .l-header__chevron {
-  font-size: 0.7rem;
-  color: #999;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
 }
 
 /* Dropdown */
 .l-header__dropdown {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 8px);
   right: 0;
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
-  min-width: 200px;
-  z-index: 9999;
+  background: var(--color-bg-modal);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  min-width: 240px;
+  z-index: 1000;
   overflow: hidden;
 }
 
+[data-theme="dark"] .l-header__dropdown {
+  background: var(--color-bg-modal);
+}
+
 .l-header__dropdown-user {
-  padding: 14px 16px;
-  background-color: #fafafa;
+  padding: 16px;
+  background-color: var(--color-bg-page);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .l-header__dropdown-name {
   display: block;
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: #222;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-text-main);
 }
 
 .l-header__dropdown-email {
   display: block;
-  font-size: 0.78rem;
-  color: #888;
-  margin-top: 2px;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-top: 4px;
 }
 
 .l-header__dropdown-divider {
   height: 1px;
-  background-color: #eee;
+  background-color: var(--color-border);
 }
 
 .l-header__dropdown-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
-  padding: 10px 16px;
+  padding: 12px 16px;
   border: none;
   background: none;
   cursor: pointer;
-  font-size: 0.875rem;
-  color: #333;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-main);
   text-align: left;
-  transition: background 0.15s;
+  transition: all 0.2s ease;
 }
 
 .l-header__dropdown-item:hover {
-  background-color: #f0f0f0;
+  background-color: var(--color-bg-page);
+  color: var(--color-primary);
+}
+
+.l-header__dropdown-item.is-danger {
+  color: var(--color-danger);
+}
+
+.l-header__dropdown-item.is-danger:hover {
+  background-color: rgba(220, 53, 69, 0.05);
 }
 </style>

@@ -4,6 +4,7 @@ import pb from '../lib/pocketbase';
 import GridCard from './grid/GridCard.vue';
 import EditItemModal from './modals/EditItemModal.vue';
 import AddToViewModal from './modals/AddToViewModal.vue';
+import MemoViewModal from './modals/MemoViewModal.vue';
 import { useGridInteract, type ViewItem, type ItemType } from './grid/useGridInteract';
 import type { PlacementsResponse, ItemsResponse, ViewsResponse } from '../lib/pocketbase-types';
 
@@ -23,13 +24,20 @@ const props = defineProps<{
 const items = ref<ViewItem[]>([]);
 const loading = ref(true);
 const editingItem = ref<ViewItem | null>(null);
+const viewingMemo = ref<ViewItem | null>(null);
 const addingItem = ref<ViewItem | null>(null);
 const showEditModal = ref(false);
+const showMemoModal = ref(false);
 const showAddToViewModal = ref(false);
 
 function openEditModal(item: ViewItem) {
   editingItem.value = item;
   showEditModal.value = true;
+}
+
+function openMemoView(item: ViewItem) {
+  viewingMemo.value = item;
+  showMemoModal.value = true;
 }
 
 function openAddToViewModal(item: ViewItem) {
@@ -63,25 +71,27 @@ async function fetchItems() {
 
     items.value = records.map(record => {
       const item = record.expand?.item;
+      const type = (item?.type || 'bookmark') as ItemType;
+      
+      // Provide safe fallbacks for position and size
       return {
         id: record.id,
         itemId: record.item,
-        type: (item?.type || 'bookmark') as ItemType,
-        title: item?.title || '',
-        content: item?.description || item?.memo || '',
+        type,
+        title: item?.title || 'Untitled',
+        content: (type === 'memo' ? item?.memo : item?.description) || '',
         url: item?.url,
         og_image_url: item?.og_image_url,
         favicon_url: item?.favicon_url,
         x: record.col ?? 0,
         y: record.row ?? 0,
-        w: record.width,
-        h: record.height,
-        color: '#ffffff', // Deprecated in V2 placements
+        w: record.width || (type === 'memo' ? 2 : 2), // Default to 2x1 for both for now
+        h: record.height || 1,
+        color: '#ffffff',
       };
     });
   } catch (err: any) {
     console.error('Failed to fetch items:', err);
-    console.error('Error details:', err.data); // This shows field validation errors
   } finally {
     loading.value = false;
   }
@@ -100,10 +110,8 @@ async function persistChange(item: ViewItem) {
       width: item.w,
       height: item.h,
     });
-    console.log('Position persisted:', item.id);
   } catch (err) {
     console.error('Failed to persist change:', err);
-    // Optional: Revert UI if needed
   }
 }
 
@@ -136,11 +144,12 @@ async function deleteItem(item: ViewItem) {
 
 const gridHeight = computed(() => {
   const maxY = items.value.reduce((max, item) => Math.max(max, item.y + item.h), 10);
-  return maxY * gridSize;
+  return maxY * (gridSize || 100);
 });
 
 const gridWidth = computed(() => {
-  return props.currentView.cols * gridSize;
+  const cols = props.currentView?.cols || 8;
+  return cols * (gridSize || 100);
 });
 
 // Use Grid Interact composable
@@ -165,7 +174,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="c-grid-container" :class="{ 'is-edit-mode': isEditMode }">
+  <div class="c-grid-container p-grid" :class="{ 'is-edit-mode': isEditMode }">
     <div v-if="loading" class="p-grid__loading">{{ $t('grid.loading') }}</div>
     <div v-else class="p-grid__container" 
          :class="{ 'is-drag-invalid': dragPreview && !dragPreview.isValid }"
@@ -174,7 +183,9 @@ onUnmounted(() => {
       minWidth: `${gridWidth}px`,
       maxWidth: `${gridWidth}px`,
       height: `${gridHeight}px`,
-      outline: dragPreview ? (isEditMode ? '2px solid #1a73e8' : '2px dashed #1a73e8') : 'none',
+      '--grid-size': `${gridSize}px`,
+      '--grid-gap': `${gap}px`,
+      outline: dragPreview ? (isEditMode ? '2px solid var(--color-primary)' : '2px dashed var(--color-primary)') : 'none',
       outlineOffset: '-2px',
       display: 'block'
     }">
@@ -201,6 +212,7 @@ onUnmounted(() => {
           @delete="deleteItem(item)"
           @add-to-view="openAddToViewModal(item)"
           @edit="openEditModal(item)"
+          @view-memo="openMemoView(item)"
         />
       </div>
       
@@ -234,6 +246,14 @@ onUnmounted(() => {
       @success="fetchItems"
     />
 
+    <!-- Memo View Modal (now an Editor) -->
+    <MemoViewModal
+      :show="showMemoModal"
+      :item="viewingMemo"
+      @close="showMemoModal = false"
+      @success="fetchItems"
+    />
+
     <!-- Add To View Modal -->
     <AddToViewModal
       :show="showAddToViewModal"
@@ -252,7 +272,7 @@ onUnmounted(() => {
   justify-content: center;
   align-items: center;
   height: 200px;
-  color: #666;
+  color: var(--color-text-muted);
   font-style: italic;
   width: 100%;
 }
@@ -262,69 +282,74 @@ onUnmounted(() => {
   position: relative;
   height: 100%;
   width: 100%;
-  padding: 40px; /* Increased padding to make the bounds clearer */
+  padding: 24px;
   -webkit-overflow-scrolling: touch;
-  background-color: #f4f5f7; /* Very light gray for the outer area */
+  background-color: var(--color-bg-page);
+  transition: background-color 0.3s ease;
 }
 
 .p-grid__container {
   position: relative;
-  background-color: #ffffff; /* Solid white background for the valid grid */
+  background-color: var(--color-bg-surface);
   background-image: 
-    linear-gradient(to right, #e5e7eb 1px, transparent 1px),
-    linear-gradient(to bottom, #e5e7eb 1px, transparent 1px);
-  background-size: 100px 100px; /* gridSize */
-  border-right: 1px solid #e5e7eb;
-  border-bottom: 1px solid #e5e7eb;
-  border-radius: 8px; /* Slightly rounded corners */
-  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01);
-  transition: background-color 0.3s, outline 0.3s;
+    linear-gradient(to right, var(--color-border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-border) 1px, transparent 1px);
+  background-size: var(--grid-size, 100px) var(--grid-size, 100px);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  transition: all 0.3s ease;
 }
 
-.p-grid__container.drop-active {
-  background-color: rgba(26, 115, 232, 0.05);
-}
-
-.p-grid__container.drop-target {
-  background-color: rgba(26, 115, 232, 0.1);
+.is-edit-mode .p-grid__container {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
 }
 
 .p-grid__container.is-drag-invalid {
   background-color: rgba(220, 53, 69, 0.05) !important;
-  outline-color: #dc3545 !important;
+  outline-color: var(--color-danger) !important;
 }
 
-/* Wrapper for GridCard to handle interact.js positioning securely */
+/* Wrapper for GridCard */
 .c-card-wrapper {
   position: absolute;
   top: 0;
   left: 0;
-  border-radius: 8px; /* Match inner card */
+  border-radius: 12px;
+  transition: opacity 0.3s ease, filter 0.3s ease;
 }
 
 .c-grid-container.is-edit-mode .c-card-wrapper {
-  outline: 1px dashed #007bff55;
   z-index: 10;
 }
 
 .c-card-wrapper.is-filtered-out {
-  opacity: 0.3;
-  filter: grayscale(1);
+  opacity: 0.15;
+  filter: grayscale(1) blur(1px);
   pointer-events: none;
   z-index: 1;
 }
 
+/* Resize handle style improvement */
 .c-grid-container.is-edit-mode .c-card-wrapper::after {
   content: '';
   position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 15px;
-  height: 15px;
-  background: linear-gradient(135deg, transparent 50%, #007bff 50%);
+  right: 4px;
+  bottom: 4px;
+  width: 12px;
+  height: 12px;
+  background: var(--color-primary);
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
   cursor: nwse-resize;
-  border-radius: 0 0 8px 0;
+  border-radius: 0 0 4px 0;
+  opacity: 0.6;
+  transition: opacity 0.2s;
   z-index: 20;
+}
+
+.c-grid-container.is-edit-mode .c-card-wrapper:hover::after {
+  opacity: 1;
 }
 
 /* Ghost Preview */
@@ -334,38 +359,38 @@ onUnmounted(() => {
   left: 0;
   pointer-events: none;
   z-index: 1000;
-  transition: transform 0.05s ease-out; /* Super snappy */
+  transition: transform 0.05s ease-out;
 }
 
 .c-card-ghost.is-invalid .c-card-ghost__inner {
-  background-color: rgba(220, 53, 69, 0.15);
-  border-color: #dc3545;
-  box-shadow: 0 0 15px rgba(220, 53, 69, 0.2);
+  background-color: rgba(220, 53, 69, 0.1);
+  border-color: var(--color-danger);
+  box-shadow: 0 0 20px rgba(220, 53, 69, 0.2);
 }
 
 .c-card-ghost.is-invalid .c-card-ghost__title {
-  color: #dc3545;
+  color: var(--color-danger);
 }
 
 .c-card-ghost__inner {
   width: 100%;
   height: 100%;
-  background-color: rgba(26, 115, 232, 0.15);
-  border: 2px dashed #1a73e8;
+  background-color: rgba(26, 115, 232, 0.1);
+  border: 2px dashed var(--color-primary);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px;
-  box-shadow: 0 0 15px rgba(26, 115, 232, 0.2);
-  transition: background-color 0.2s, border-color 0.2s;
+  padding: 12px;
+  box-shadow: 0 0 20px rgba(26, 115, 232, 0.15);
+  transition: all 0.2s ease;
 }
 
 .c-card-ghost__title {
-  color: #1a73e8;
-  font-weight: 600;
-  font-size: 0.85rem;
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 0.9rem;
   text-align: center;
-  opacity: 0.6;
+  opacity: 0.8;
 }
 </style>

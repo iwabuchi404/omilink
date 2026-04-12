@@ -22,7 +22,17 @@
     "searchPlaceholder": "アイテムを検索...",
     "btnEdit": " 編集",
     "btnDone": " 完了",
-    "btnAdd": " 追加"
+    "btnAdd": " 追加",
+    "defaultUser": "ユーザー",
+    "theme": "テーマ",
+    "language": "言語",
+    "tools": "ツールとアプリ",
+    "editingMode": "レイアウト編集モード",
+    "changeLanguage": "言語切替",
+    "search": "検索",
+    "editLayout": "レイアウトを編集",
+    "finishEditing": "編集を終了",
+    "addItemTitle": "アイテムを追加"
   },
   "modal": {
     "newItem": "アイテム追加",
@@ -60,6 +70,10 @@
   },
   "grid": {
     "loading": "ブックマークを読み込み中...",
-    "empty": "アイテムがありません。「+ 追加」から最初のブックマークを作成しましょう！"
+    "empty": "アイテムがありません。「+ 追加」から最初のブックマークを作成しましょう！",
+    "cardOptions": "オプション",
+    "editDetails": "詳細を編集",
+    "addToView": "他のビューに追加",
+    "moveToTrash": "ゴミ箱へ移動"
   }
 }

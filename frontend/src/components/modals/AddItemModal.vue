@@ -233,9 +233,9 @@ function close() {
 .c-modal__tabs, .c-modal__type-selector {
   display: flex;
   margin-bottom: 24px;
-  background: #f1f3f4;
+  background: var(--color-bg-page);
   padding: 4px;
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
 .c-modal__tabs button, .c-modal__type-btn {
@@ -244,43 +244,46 @@ function close() {
   border: none;
   background: none;
   cursor: pointer;
-  font-weight: 600;
-  color: #666;
-  border-radius: 8px;
-  transition: all 0.2s;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  border-radius: 10px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.9rem;
 }
 
 .c-modal__tabs button.active, .c-modal__type-btn.is-active {
-  background: white;
-  color: #007bff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  background: var(--color-bg-surface);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .c-modal__field {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .c-modal__field label {
   display: block;
   font-size: 0.85rem;
   margin-bottom: 8px;
-  color: #555;
-  font-weight: 600;
+  color: var(--color-text-muted);
+  font-weight: 700;
 }
 
-.c-modal__field input, .c-modal__field textarea {
+.c-modal__field input, .c-modal__field textarea, .c-modal__field select {
   width: 100%;
-  padding: 12px;
-  border: 1.5px solid #eee;
-  border-radius: 10px;
+  padding: 12px 16px;
+  background-color: var(--color-bg-page);
+  border: 1.5px solid var(--color-border);
+  border-radius: 12px;
   font-size: 1rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  color: var(--color-text-main);
+  transition: all 0.2s ease;
 }
 
-.c-modal__field input:focus, .c-modal__field textarea:focus {
+.c-modal__field input:focus, .c-modal__field textarea:focus, .c-modal__field select:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1);
 }
 
 .c-modal__field textarea {
@@ -289,21 +292,24 @@ function close() {
 }
 
 .c-modal__error {
-  color: #dc3545;
+  color: var(--color-danger);
   font-size: 0.85rem;
   margin-bottom: 15px;
+  padding: 12px;
+  background: rgba(220, 53, 69, 0.05);
+  border-radius: 10px;
 }
 
 .c-modal__actions {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-  margin-top: 24px;
+  gap: 16px;
+  margin-top: 32px;
 }
 
 .c-modal__input-group {
   display: flex;
-  gap: 8px;
+  gap: 12px;
 }
 
 .c-modal__input-group input {
@@ -311,28 +317,34 @@ function close() {
 }
 
 .btn-fetch {
-  background: #e8f0fe;
-  color: #1a73e8;
-  border: 1.5px solid #1a73e8;
-  padding: 0 16px;
-  border-radius: 10px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: 0 20px;
+  border-radius: 12px;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.85rem;
   transition: all 0.2s;
   white-space: nowrap;
 }
 
 .btn-fetch:hover:not(:disabled) {
-  background: #1a73e8;
-  color: white;
+  background: var(--color-primary-hover);
+  transform: translateY(-1px);
 }
 
 .btn-fetch:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  border-color: #ccc;
-  color: #666;
-  background: #f5f5f5;
+  background: var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.c-modal__hint {
+  font-weight: 400;
+  opacity: 0.6;
+  font-size: 0.8rem;
+  margin-left: 4px;
 }
 </style>

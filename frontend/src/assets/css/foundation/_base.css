@@ -4,15 +4,6 @@
   box-sizing: border-box;
 }
 
-:root {
-  --grid-size: 100px;
-  --grid-gap: 10px;
-  --bg-color: #e9ebf0f8;
-  --card-bg: #fff;
-  --card-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  --primary-color: #007bff;
-}
-
 body {
   margin: 0;
   padding: 0;

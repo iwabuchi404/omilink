@@ -2,12 +2,16 @@
 import { provide } from 'vue'
 import { RouterView } from 'vue-router'
 import { useAuth } from './composables/useAuth'
+import { useTheme } from './composables/useTheme'
 
 const { isAuthenticated, currentUser, checkSession } = useAuth()
+const { theme, toggleTheme } = useTheme()
 
-// Provide global auth state
+// Provide global state
 provide('isAuthenticated', isAuthenticated)
 provide('currentUser', currentUser)
+provide('theme', theme)
+provide('toggleTheme', toggleTheme)
 
 // Check session on mount
 checkSession()
@@ -26,13 +30,15 @@ checkSession()
   height: 100vh;
   width: 100vw;
   overflow: hidden;
+  background-color: var(--color-bg-page);
+  color: var(--color-text-main);
 }
 
 .l-main {
   flex-grow: 1;
   position: relative;
-  background-color: #f0f2f5;
   height: 100%;
   overflow: hidden;
+  background-color: var(--color-bg-page);
 }
 </style>

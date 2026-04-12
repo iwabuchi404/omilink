@@ -22,7 +22,17 @@
     "searchPlaceholder": "Search items...",
     "btnEdit": " Edit",
     "btnDone": " Done",
-    "btnAdd": " Add"
+    "btnAdd": " Add",
+    "defaultUser": "User",
+    "theme": "Theme",
+    "language": "Language",
+    "tools": "Tools & App",
+    "editingMode": "Editing Layout",
+    "changeLanguage": "Change Language",
+    "search": "Search",
+    "editLayout": "Edit Layout",
+    "finishEditing": "Finish Editing",
+    "addItemTitle": "Add Item"
   },
   "modal": {
     "newItem": "New Item",
@@ -60,6 +70,10 @@
   },
   "grid": {
     "loading": "Loading your bookmarks...",
-    "empty": "No items yet. Click \"+ Add\" to create your first bookmark!"
+    "empty": "No items yet. Click \"+ Add\" to create your first bookmark!",
+    "cardOptions": "Options",
+    "editDetails": "Edit Details",
+    "addToView": "Add to another view",
+    "moveToTrash": "Move to Trash"
   }
 }

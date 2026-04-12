@@ -99,96 +99,104 @@ function close() {
 
 <style scoped>
 .c-modal__field {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .c-modal__field label {
   display: block;
-  font-size: 0.8rem;
-  font-weight: 600;
-  margin-bottom: 6px;
-  color: #555;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .c-modal__hint {
-  font-weight: normal;
-  color: #999;
+  font-weight: 400;
+  color: var(--color-text-muted);
   text-transform: none;
   letter-spacing: 0;
+  opacity: 0.6;
 }
 
 .c-modal__field input[type="text"] {
   width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.95rem;
+  padding: 12px 16px;
+  background-color: var(--color-bg-page);
+  border: 1.5px solid var(--color-border);
+  border-radius: 12px;
+  font-size: 1rem;
+  color: var(--color-text-main);
   outline: none;
-  transition: border-color 0.2s;
+  transition: all 0.2s ease;
 }
 
 .c-modal__field input[type="text"]:focus {
-  border-color: #1a73e8;
-  box-shadow: 0 0 0 2px rgba(26,115,232,0.15);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1);
 }
 
 .c-modal__field input[type="range"] {
   width: 100%;
-  accent-color: #1a73e8;
+  accent-color: var(--color-primary);
+  margin: 12px 0;
 }
 
 .c-modal__range-labels {
   display: flex;
   justify-content: space-between;
   font-size: 0.75rem;
-  color: #999;
+  color: var(--color-text-muted);
   margin-top: 4px;
+  font-weight: 600;
 }
 
 .c-modal__cell-sizes {
   display: flex;
-  gap: 8px;
+  gap: 12px;
 }
 
 .c-modal__cell-sizes button {
   flex: 1;
-  padding: 8px;
-  border: 2px solid #e0e0e0;
-  border-radius: 6px;
+  padding: 12px;
+  border: 2px solid var(--color-border);
+  border-radius: 12px;
   text-align: center;
   cursor: pointer;
-  background: white;
-  color: #666;
-  font-size: 0.875rem;
-  font-weight: 500;
+  background: var(--color-bg-page);
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  font-weight: 700;
   text-transform: capitalize;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .c-modal__cell-sizes button:hover {
-  border-color: #1a73e8;
-  color: #1a73e8;
+  border-color: var(--color-text-muted);
+  color: var(--color-text-main);
 }
 
 .c-modal__cell-sizes button.is-selected {
-  border-color: #1a73e8;
-  background-color: #e8f0fe;
-  color: #1a73e8;
-  font-weight: 600;
+  border-color: var(--color-primary);
+  background-color: var(--color-bg-surface);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .c-modal__error {
-  color: #d93025;
+  color: var(--color-danger);
   font-size: 0.85rem;
-  margin: 0 0 10px 0;
+  margin: 12px 0;
+  padding: 10px;
+  background: rgba(220, 53, 69, 0.05);
+  border-radius: 8px;
 }
 
 .c-modal__actions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-  margin-top: 24px;
+  gap: 16px;
+  margin-top: 32px;
 }
 </style>
