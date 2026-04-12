@@ -30,12 +30,15 @@ watch(() => props.show, (newShow) => {
   }
 });
 
+// Helper to safely extract title
+const extractTitle = (content: string) => {
+  if (!content) return 'Untitled';
+  const lines = content.split('\n');
+  return (lines[0] || '').trim() || 'Untitled';
+};
+
 // Extract title from first line
-const derivedTitle = computed(() => {
-  if (!localContent.value) return 'Untitled';
-  const lines = localContent.value.split('\n');
-  return lines[0].trim() || 'Untitled';
-});
+const derivedTitle = computed(() => extractTitle(localContent.value));
 
 // Auto-save logic
 let saveTimeout: any = null;
@@ -50,7 +53,7 @@ watch(localContent, (newContent) => {
     
     isSaving.value = true;
     try {
-      const title = newContent.split('\n')[0].trim() || 'Untitled';
+      const title = extractTitle(newContent);
       await pb.collection('items').update(props.item.itemId, {
         memo: newContent,
         title: title
@@ -87,7 +90,7 @@ async function saveMemo() {
   if (!props.item) return;
   isSaving.value = true;
   try {
-    const title = localContent.value.split('\n')[0].trim() || 'Untitled';
+    const title = extractTitle(localContent.value);
     await pb.collection('items').update(props.item.itemId, {
       memo: localContent.value,
       title: title
