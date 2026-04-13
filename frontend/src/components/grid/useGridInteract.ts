@@ -24,11 +24,10 @@ export function useGridInteract(
   items: Ref<ViewItem[]>,
   currentView: Ref<ViewsResponse>,
   isEditMode: Ref<boolean>,
+  gridSize: Ref<number>,
+  gap: Ref<number>,
   persistChange: (item: ViewItem) => Promise<void>
 ) {
-  const gridSize = 110;
-  const gap = 10;
-
   const dragPreview = ref<{ col: number, row: number, w: number, h: number, title: string, isValid: boolean } | null>(null);
 
   // Constraints
@@ -54,10 +53,10 @@ export function useGridInteract(
     const containerRect = container.getBoundingClientRect();
     const offsetX = clientX - containerRect.left;
     const offsetY = clientY - containerRect.top;
-    const snappedX = offsetX - (w * gridSize / 2);
-    const snappedY = offsetY - (h * gridSize / 2);
-    const col = Math.min(currentView.value.cols - w, Math.max(0, Math.round(snappedX / gridSize)));
-    const row = Math.max(0, Math.round(snappedY / gridSize));
+    const snappedX = offsetX - (w * gridSize.value / 2);
+    const snappedY = offsetY - (h * gridSize.value / 2);
+    const col = Math.min(currentView.value.cols - w, Math.max(0, Math.round(snappedX / gridSize.value)));
+    const row = Math.max(0, Math.round(snappedY / gridSize.value));
     return { col, row };
   }
 
@@ -91,8 +90,18 @@ export function useGridInteract(
     // Background Panning
     const bgInteractable = interact('.p-grid').draggable({
       cursorChecker: (_action, _interactable, _element, interacting) => interacting ? 'grabbing' : 'default',
+      inertia: {
+        resistance: 10,
+        minSpeed: 200,
+        endSpeed: 100
+      },
       listeners: {
         start(event) {
+          // If touch, we let the browser handle the scrolling
+          if (event.pointerType === 'touch') {
+            event.interaction.stop();
+            return;
+          }
           event.currentTarget.classList.add('is-panning');
         },
         move(event) {
@@ -115,7 +124,7 @@ export function useGridInteract(
         autoScroll: true,
         modifiers: [
           interact.modifiers.snap({
-            targets: [interact.snappers.grid({ x: gridSize, y: gridSize })],
+            targets: [interact.snappers.grid({ x: gridSize.value, y: gridSize.value })],
             range: Infinity,
             relativePoints: [{ x: 0, y: 0 }]
           })
@@ -196,8 +205,8 @@ export function useGridInteract(
               item.y = originalPos.y;
             }
 
-            const finalX = item.x * gridSize;
-            const finalY = item.y * gridSize;
+            const finalX = item.x * gridSize.value;
+            const finalY = item.y * gridSize.value;
             target.style.transform = `translate(${finalX}px, ${finalY}px)`;
             target.setAttribute('data-x', finalX.toString());
             target.setAttribute('data-y', finalY.toString());
@@ -209,7 +218,7 @@ export function useGridInteract(
         edges: { right: true, bottom: true },
         modifiers: [
           interact.modifiers.snapSize({
-            targets: [interact.snappers.grid({ x: gridSize, y: gridSize })],
+            targets: [interact.snappers.grid({ x: gridSize.value, y: gridSize.value })],
             range: Infinity,
           }),
         ],
@@ -229,8 +238,8 @@ export function useGridInteract(
             if (!item) return;
 
             const maxW = currentView.value.cols - item.x;
-            let newW = Math.max(gridSize, Math.min(maxW * gridSize, event.rect.width));
-            let newH = Math.max(gridSize, event.rect.height);
+            let newW = Math.max(gridSize.value, Math.min(maxW * gridSize.value, event.rect.width));
+            let newH = Math.max(gridSize.value, event.rect.height);
 
             target.style.width = newW + 'px';
             target.style.height = newH + 'px';
@@ -249,8 +258,8 @@ export function useGridInteract(
             if (!item) return;
 
             const maxW = currentView.value.cols - item.x;
-            const snappedW = Math.max(1, Math.min(maxW, Math.round(event.rect.width / gridSize)));
-            const snappedH = Math.max(1, Math.round(event.rect.height / gridSize));
+            const snappedW = Math.max(1, Math.min(maxW, Math.round(event.rect.width / gridSize.value)));
+            const snappedH = Math.max(1, Math.round(event.rect.height / gridSize.value));
             
             if (isValidPosition(id, item.x, item.y, snappedW, snappedH)) {
               item.w = snappedW;
@@ -260,8 +269,8 @@ export function useGridInteract(
               item.w = originalPos.w;
               item.h = originalPos.h;
             }
-            target.style.width = (item.w * gridSize - gap) + 'px';
-            target.style.height = (item.h * gridSize - gap) + 'px';
+            target.style.width = (item.w * gridSize.value - gap.value) + 'px';
+            target.style.height = (item.h * gridSize.value - gap.value) + 'px';
           }
         }
       });
@@ -272,6 +281,27 @@ export function useGridInteract(
     watch(isEditMode, (newMode) => {
       cardInteractable.draggable({ enabled: newMode });
       cardInteractable.resizable({ enabled: newMode });
+    });
+
+    // Update snap targets when gridSize changes
+    watch(gridSize, (newSize) => {
+      cardInteractable.draggable({
+        modifiers: [
+          interact.modifiers.snap({
+            targets: [interact.snappers.grid({ x: newSize, y: newSize })],
+            range: Infinity,
+            relativePoints: [{ x: 0, y: 0 }]
+          })
+        ]
+      });
+      cardInteractable.resizable({
+        modifiers: [
+          interact.modifiers.snapSize({
+            targets: [interact.snappers.grid({ x: newSize, y: newSize })],
+            range: Infinity,
+          })
+        ]
+      });
     });
 
     pointerMoveListener = updateGhostFromPointer;

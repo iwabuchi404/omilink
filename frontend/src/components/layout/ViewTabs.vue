@@ -27,8 +27,8 @@ const setupInteract = () => {
     allowFrom: '.c-view-tabs__handle',
     listeners: {
       start(event) {
-        const index = parseInt(event.target.getAttribute('data-index'));
-        draggedIndex.value = index;
+        const id = event.target.getAttribute('data-id');
+        draggedIndex.value = props.views.findIndex(v => v.id === id);
         event.target.classList.add('is-dragging');
       },
       move(event) {
@@ -44,16 +44,20 @@ const setupInteract = () => {
         
         if (neighborLeft && neighborLeft.classList.contains('c-view-tabs__tab')) {
           const leftRect = neighborLeft.getBoundingClientRect();
-          if (centerX < leftRect.right - leftRect.width / 2) {
-            swap(index, index - 1);
+          if (centerX < leftRect.right - leftRect.width / 4) { // Sensitivity adjustment
+            const neighborId = neighborLeft.getAttribute('data-id');
+            const targetIndex = props.views.findIndex(v => v.id === neighborId);
+            if (targetIndex !== -1) swap(index, targetIndex);
             return;
           }
         }
         
         if (neighborRight && neighborRight.classList.contains('c-view-tabs__tab')) {
           const rightRect = neighborRight.getBoundingClientRect();
-          if (centerX > rightRect.left + rightRect.width / 2) {
-            swap(index, index + 1);
+          if (centerX > rightRect.left + rightRect.width / 4) { // Sensitivity adjustment
+            const neighborId = neighborRight.getAttribute('data-id');
+            const targetIndex = props.views.findIndex(v => v.id === neighborId);
+            if (targetIndex !== -1) swap(index, targetIndex);
             return;
           }
         }
@@ -106,8 +110,8 @@ watch(() => props.isEditMode, (newVal) => {
             'is-dragging': draggedIndex === index,
             'is-sortable': isEditMode
           }"
-          :data-index="index"
-          @click="!isEditMode && $emit('update:currentViewId', v.id)"
+          :data-id="v.id"
+          @click="$emit('update:currentViewId', v.id)"
         >
           <span v-if="isEditMode" class="c-view-tabs__handle">⠿</span>
           <span class="c-view-tabs__tab-name">{{ v.name }}</span>
@@ -143,7 +147,7 @@ watch(() => props.isEditMode, (newVal) => {
   border-bottom: none;
   border-top: 1px solid var(--color-border);
   box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-  padding-bottom: env(safe-area-inset-bottom, 0);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0) + 12px); /* Add extra safety padding */
 }
 
 .c-view-tabs {

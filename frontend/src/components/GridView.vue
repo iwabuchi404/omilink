@@ -148,21 +148,27 @@ async function deleteItem(item: ViewItem) {
   }
 }
 
+const gridSize = ref(110);
+const gap = ref(10);
+
 const gridHeight = computed(() => {
-  const maxY = items.value.reduce((max, item) => Math.max(max, item.y + item.h), props.currentView?.rows || 6);
-  return maxY * (gridSize || 100);
+  const minRows = props.currentView?.rows || 1;
+  const maxY = items.value.reduce((max, item) => Math.max(max, item.y + item.h), minRows);
+  return maxY * gridSize.value;
 });
 
 const gridWidth = computed(() => {
-  const cols = props.currentView?.cols || 8;
-  return cols * (gridSize || 100);
+  const cols = props.currentView?.cols || 6;
+  return cols * gridSize.value;
 });
 
 // Use Grid Interact composable
-const { dragPreview, gridSize, gap, setupInteract, teardownInteract } = useGridInteract(
+const { dragPreview, setupInteract, teardownInteract } = useGridInteract(
   items,
   toRef(props, 'currentView'),
   toRef(props, 'isEditMode'),
+  gridSize,
+  gap,
   persistChange
 );
 
@@ -189,6 +195,7 @@ onUnmounted(() => {
       minWidth: `${gridWidth}px`,
       maxWidth: `${gridWidth}px`,
       height: `${gridHeight}px`,
+      minHeight: '100%',
       '--grid-size': `${gridSize}px`,
       '--grid-gap': `${gap}px`,
       outline: dragPreview ? (isEditMode ? '2px solid var(--color-primary)' : '2px dashed var(--color-primary)') : 'none',
@@ -283,17 +290,17 @@ onUnmounted(() => {
   width: 100%;
 }
 
-.c-grid-container {
+.c-grid-container.p-grid {
+  flex-grow: 1;
   overflow: auto;
   position: relative;
   height: 100%;
   width: 100%;
   padding: 24px;
-  -webkit-overflow-scrolling: touch;
   background-color: var(--color-bg-page);
   transition: background-color 0.3s ease;
   user-select: none;
-  touch-action: none;
+  -webkit-overflow-scrolling: touch; /* Momentum scrolling for iOS */
 }
 
 .p-grid__container {
