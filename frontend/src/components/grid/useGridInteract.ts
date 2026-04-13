@@ -26,16 +26,12 @@ export function useGridInteract(
   isEditMode: Ref<boolean>,
   persistChange: (item: ViewItem) => Promise<void>
 ) {
-  const gridSize = 100;
+  const gridSize = 110;
   const gap = 10;
 
   const dragPreview = ref<{ col: number, row: number, w: number, h: number, title: string, isValid: boolean } | null>(null);
 
   // Constraints
-  const constraints = {
-    bookmark: { minW: 1, minH: 1, maxW: 4, maxH: 4 },
-    memo: { minW: 2, minH: 1, maxW: 4, maxH: 4 },
-  };
 
   const isOverlapping = (r1: {x:number, y:number, w:number, h:number}, r2: {x:number, y:number, w:number, h:number}) => {
     return !(r1.x + r1.w <= r2.x || 
@@ -74,7 +70,7 @@ export function useGridInteract(
     if (!container || !currentDragMeta) return;
 
     const rect = container.getBoundingClientRect();
-    const isOutOfBounds = e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom;
+    const isOutOfBounds = e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top;
 
     const { w, h, title } = currentDragMeta;
     const { col, row } = calculateGridPosition(e.clientX, e.clientY, container, w, h);
@@ -87,19 +83,31 @@ export function useGridInteract(
 
   function setupInteract() {
     interact.dynamicDrop(true);
+    // Set global threshold for all interactions
+    interact.pointerMoveTolerance(5);
+
     let originalPos = { x: 0, y: 0, w: 0, h: 0 };
 
+    // Background Panning
     const bgInteractable = interact('.p-grid').draggable({
-      ignoreFrom: '.c-card-wrapper',
       cursorChecker: (_action, _interactable, _element, interacting) => interacting ? 'grabbing' : 'default',
       listeners: {
+        start(event) {
+          event.currentTarget.classList.add('is-panning');
+        },
         move(event) {
           event.currentTarget.scrollLeft -= event.dx;
           event.currentTarget.scrollTop -= event.dy;
+        },
+        end(event) {
+          event.currentTarget.classList.remove('is-panning');
         }
       }
     });
 
+    // Remove old click prevention logic
+
+    // Card Dragging
     const cardInteractable = interact('.c-card-wrapper')
       .draggable({
         enabled: isEditMode.value,
@@ -149,7 +157,7 @@ export function useGridInteract(
             if (container && item && dragPreview.value) {
               const { col, row } = calculateGridPosition(event.clientX, event.clientY, container, item.w, item.h);
               const rect = container.getBoundingClientRect();
-              const isOutOfBounds = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
+              const isOutOfBounds = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top;
               const isValid = !isOutOfBounds && isValidPosition(item.id, col, row, item.w, item.h);
               
               if (dragPreview.value.col !== col || dragPreview.value.row !== row || dragPreview.value.isValid !== isValid) {
@@ -220,10 +228,9 @@ export function useGridInteract(
             const item = items.value.find(i => i.id === id);
             if (!item) return;
 
-            const limit = constraints[item.type];
             const maxW = currentView.value.cols - item.x;
-            let newW = Math.max(limit.minW * gridSize, Math.min(Math.min(limit.maxW, maxW) * gridSize, event.rect.width));
-            let newH = Math.max(limit.minH * gridSize, Math.min(limit.maxH * gridSize, event.rect.height));
+            let newW = Math.max(gridSize, Math.min(maxW * gridSize, event.rect.width));
+            let newH = Math.max(gridSize, event.rect.height);
 
             target.style.width = newW + 'px';
             target.style.height = newH + 'px';
@@ -241,10 +248,9 @@ export function useGridInteract(
             const item = items.value.find(i => i.id === id);
             if (!item) return;
 
-            const limit = constraints[item.type];
             const maxW = currentView.value.cols - item.x;
-            const snappedW = Math.max(limit.minW, Math.min(Math.min(limit.maxW, maxW), Math.round(event.rect.width / gridSize)));
-            const snappedH = Math.max(limit.minH, Math.min(limit.maxH, Math.round(event.rect.height / gridSize)));
+            const snappedW = Math.max(1, Math.min(maxW, Math.round(event.rect.width / gridSize)));
+            const snappedH = Math.max(1, Math.round(event.rect.height / gridSize));
             
             if (isValidPosition(id, item.x, item.y, snappedW, snappedH)) {
               item.w = snappedW;

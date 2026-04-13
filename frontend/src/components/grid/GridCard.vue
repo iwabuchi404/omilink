@@ -163,9 +163,8 @@ const displayTitle = computed(() => {
 }
 
 .c-card:hover {
-  transform: translateY(-2px);
   box-shadow: var(--shadow-md);
-  border-color: var(--color-text-muted);
+  border-color: var(--color-primary);
 }
 
 .c-card.is-bookmark {

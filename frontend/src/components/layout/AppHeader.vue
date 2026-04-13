@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, inject, type Ref } from 'vue';
+import { ref, computed, inject, watch, onMounted, onUnmounted, type Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { UsersResponse, ViewsResponse } from '../../lib/pocketbase-types';
 import type { Theme } from '../../composables/useTheme';
@@ -18,10 +18,23 @@ const emit = defineEmits<{
   (e: 'showToolsModal'): void;
   (e: 'logout'): void;
   (e: 'update:searchQuery', value: string): void;
+  (e: 'update:isHidden', value: boolean): void;
 }>();
 
 const showUserMenu = ref(false);
 const showMobileSearch = ref(false);
+
+const closeUserMenu = () => {
+  showUserMenu.value = false;
+};
+
+onMounted(() => {
+  window.addEventListener('click', closeUserMenu);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('click', closeUserMenu);
+});
 
 const { t, locale } = useI18n();
 const currentLanguage = computed(() => locale.value.toUpperCase());
@@ -34,17 +47,32 @@ const toggleTabPosition = inject('toggleTabPosition') as () => void;
 const isHidden = ref(false);
 const lastScrollTop = ref(0);
 
+watch(isHidden, (newVal) => {
+  emit('update:isHidden', newVal);
+});
+
 const handleScroll = (scrollTop: number) => {
   if (window.innerWidth > 768) {
     isHidden.value = false;
     return;
   }
   
-  if (scrollTop > lastScrollTop.value && scrollTop > 100) {
+  const delta = scrollTop - lastScrollTop.value;
+  
+  // Ignore tiny movements to prevent jitter
+  if (Math.abs(delta) < 5) return;
+
+  if (scrollTop < 50) {
+    // Always show when near the top
+    isHidden.value = false;
+  } else if (delta > 0 && scrollTop > 100) {
+    // Scroll down: Hide header
     isHidden.value = true;
-  } else {
+  } else if (delta < -15) {
+    // Significant scroll up: Show header
     isHidden.value = false;
   }
+  
   lastScrollTop.value = scrollTop;
 };
 
@@ -106,9 +134,6 @@ const themeIcon = computed(() => {
         <span class="l-header__btn-icon">🔍</span>
       </button>
 
-      <div v-if="isEditMode" class="l-header__edit-badge">
-        {{ $t('header.editingMode') }}
-      </div>
 
       <button 
         class="l-header__btn"
@@ -132,34 +157,34 @@ const themeIcon = computed(() => {
       </button>
 
       <!-- User menu -->
-      <div class="l-header__user-menu" @mouseenter="showUserMenu = true" @mouseleave="showUserMenu = false">
-        <button class="l-header__user-btn">
+      <div class="l-header__user-menu">
+        <button class="l-header__user-btn" @click.stop="showUserMenu = !showUserMenu">
           <span class="l-header__avatar">{{ (currentUser?.name || currentUser?.email || '?').charAt(0).toUpperCase() }}</span>
           <span class="l-header__username">{{ currentUser?.name || currentUser?.email || $t('header.defaultUser') }}</span>
           <span class="l-header__chevron">▾</span>
         </button>
         
-        <div v-if="showUserMenu" class="l-header__dropdown">
+        <div v-if="showUserMenu" class="l-header__dropdown" @click.stop>
           <div class="l-header__dropdown-user">
             <span class="l-header__dropdown-name">{{ currentUser?.name || $t('header.defaultUser') }}</span>
             <span class="l-header__dropdown-email">{{ currentUser?.email }}</span>
           </div>
           <div class="l-header__dropdown-divider"></div>
-          <button class="l-header__dropdown-item" @click="toggleTheme">
+          <button class="l-header__dropdown-item" @click="toggleTheme(); showUserMenu = false">
             <span>{{ themeIcon }}</span> {{ $t('header.theme') }}: {{ theme }}
           </button>
-          <button class="l-header__dropdown-item" @click="toggleTabPosition">
+          <button class="l-header__dropdown-item" @click="toggleTabPosition(); showUserMenu = false">
             <span>{{ tabPosition === 'top' ? '⬇️' : '⬆️' }}</span> {{ t('header.tabPosition') }}: {{ t(`header.${tabPosition}`) }}
           </button>
-          <button class="l-header__dropdown-item" @click="toggleLanguage">
+          <button class="l-header__dropdown-item" @click="toggleLanguage(); showUserMenu = false">
             <span>🌐</span> {{ $t('header.language') }}: {{ currentLanguage }}
           </button>
           <div class="l-header__dropdown-divider"></div>
-          <button class="l-header__dropdown-item" @click="$emit('showToolsModal')">
+          <button class="l-header__dropdown-item" @click="$emit('showToolsModal'); showUserMenu = false">
             <span>📦</span> {{ $t('header.tools') }}
           </button>
           <div class="l-header__dropdown-divider"></div>
-          <button class="l-header__dropdown-item" @click="$emit('logout')">
+          <button class="l-header__dropdown-item" @click="$emit('logout'); showUserMenu = false">
             <span>🔓</span> {{ $t('header.logout') }}
           </button>
         </div>
@@ -174,21 +199,28 @@ const themeIcon = computed(() => {
   align-items: center;
   padding: 0 24px;
   height: 64px;
+  max-height: 1000px; /* Sufficient for dropdown too */
   background-color: var(--color-bg-surface);
   border-bottom: 1px solid var(--color-border);
   box-shadow: var(--shadow-sm);
   flex-shrink: 0;
-  transition: transform 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+  transition: all 0.3s ease;
   z-index: 1000;
 }
 
 .l-header.is-hidden {
-  transform: translateY(-100%);
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-bottom-width: 0;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
 }
 
 .l-header.is-edit-mode {
+  background-color: var(--color-bg-page);
   border-bottom-color: var(--color-primary);
-  border-bottom-width: 2px;
 }
 
 @media (max-width: 768px) {
@@ -354,9 +386,10 @@ const themeIcon = computed(() => {
 
 @media (max-width: 768px) {
   .l-header__btn {
-    padding: 0 10px;
-    font-size: 0.8rem;
-    height: 36px;
+    padding: 0 14px;
+    font-size: 0.85rem;
+    height: 42px;
+    min-width: 48px;
   }
   
   .l-header__btn--search-toggle {
@@ -415,26 +448,6 @@ const themeIcon = computed(() => {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.l-header__edit-badge {
-  background-color: rgba(26, 115, 232, 0.1);
-  color: var(--color-primary);
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border: 1px solid rgba(26, 115, 232, 0.2);
-  animation: pulse-soft 2s infinite;
-  display: flex;
-  align-items: center;
-}
-
-@keyframes pulse-soft {
-  0% { opacity: 0.8; }
-  50% { opacity: 1; }
-  100% { opacity: 0.8; }
-}
 
 .l-header__username {
   font-size: 0.9rem;

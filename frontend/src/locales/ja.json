@@ -60,8 +60,7 @@
     "viewName": "ビューの名前",
     "viewNamePlaceholder": "例: 技術、読書リスト...",
     "columns": "列数",
-    "columnsCount": "列",
-    "cellSize": "セルの大きさ",
+    "rows": "高さ（行数）",
     "createView": "作成する",
     "creating": "作成中...",
     "editBookmark": "ブックマークの編集",
@@ -69,7 +68,10 @@
     "saveChanges": "変更を保存",
     "saving": "保存中...",
     "urlPlaceholder": "https://...",
-    "contentPlaceholder": "内容..."
+    "contentPlaceholder": "内容...",
+    "viewSettings": "ビューの設定",
+    "delete": "削除",
+    "save": "保存"
   },
   "grid": {
     "loading": "ブックマークを読み込み中...",

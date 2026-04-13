@@ -152,6 +152,7 @@ export type UsersRecord = {
 export type ViewsRecord = {
 	cell_size: string
 	cols: number
+	rows: number
 	created: IsoAutoDateString
 	id: string
 	name: string

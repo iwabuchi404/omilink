@@ -5,14 +5,22 @@ import type { ViewsResponse } from '../../lib/pocketbase-types';
 import BaseModal from '../ui/BaseModal.vue';
 import BaseButton from '../ui/BaseButton.vue';
 
+const props = defineProps<{
+  show: boolean;
+  view?: ViewsResponse | null; // If provided, we are in edit mode
+  canDelete?: boolean;
+}>();
+
 const emit = defineEmits<{
   (e: 'close'): void;
   (e: 'viewCreated', view: ViewsResponse): void;
+  (e: 'viewUpdated', view: ViewsResponse): void;
+  (e: 'viewDeleted', id: string): void;
 }>();
 
-const name = ref('');
-const cols = ref(8);
-const cellSize = ref<'small' | 'medium' | 'large'>('medium');
+const name = ref(props.view?.name || '');
+const cols = ref(props.view?.cols || 6);
+const rows = ref(props.view?.rows || 6);
 const loading = ref(false);
 const error = ref('');
 
@@ -25,17 +33,44 @@ async function handleSubmit() {
   loading.value = true;
   error.value = '';
   try {
-    const created = await pb.collection('views').create<ViewsResponse>({
-      user: pb.authStore.model?.id || '',
+    const data = {
+      user: pb.authStore.model?.id,
       name: name.value,
-      cols: Number(cols.value),
-      cell_size: cellSize.value,
-    });
-    emit('viewCreated', created);
-    resetForm();
+      cols: cols.value,
+      rows: rows.value,
+      cell_size: 'medium',
+    };
+
+    if (props.view) {
+      // Update mode
+      const updated = await pb.collection('views').update<ViewsResponse>(props.view.id, data);
+      emit('viewUpdated', updated);
+    } else {
+      // Create mode
+      const created = await pb.collection('views').create<ViewsResponse>(data);
+      emit('viewCreated', created);
+    }
+    close();
   } catch (err: any) {
-    console.error('Failed to create view:', err);
-    error.value = err.message || 'Failed to create view';
+    console.error('Failed to save view:', err);
+    error.value = err.message || 'Failed to save view';
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function handleDelete() {
+  if (!props.view) return;
+  if (!confirm('Are you sure you want to delete this view? This action cannot be undone.')) return;
+
+  loading.value = true;
+  try {
+    await pb.collection('views').delete(props.view.id);
+    emit('viewDeleted', props.view.id);
+    close();
+  } catch (err: any) {
+    console.error('Failed to delete view:', err);
+    error.value = err.message || 'Failed to delete view';
   } finally {
     loading.value = false;
   }
@@ -43,8 +78,8 @@ async function handleSubmit() {
 
 function resetForm() {
   name.value = '';
-  cols.value = 8;
-  cellSize.value = 'medium';
+  cols.value = 6;
+  rows.value = 6;
   error.value = '';
 }
 
@@ -55,7 +90,12 @@ function close() {
 </script>
 
 <template>
-  <BaseModal :show="true" :title="$t('modal.newView')" maxWidth="420px" @close="close">
+  <BaseModal 
+    :show="show" 
+    :title="view ? $t('modal.viewSettings') : $t('modal.newView')" 
+    maxWidth="420px" 
+    @close="close"
+  >
     <form @submit.prevent="handleSubmit" class="c-modal__form">
       <div class="c-modal__field">
         <label>{{ $t('modal.viewName') }}</label>
@@ -63,34 +103,50 @@ function close() {
       </div>
 
       <div class="c-modal__field">
-        <label>{{ $t('modal.columns') }} <span class="c-modal__hint">({{ cols }} {{ $t('modal.columnsCount') }})</span></label>
-        <input v-model.number="cols" type="range" min="4" max="16" step="2" />
-        <div class="c-modal__range-labels">
-          <span>4</span><span>8</span><span>12</span><span>16</span>
+        <label>{{ $t('modal.columns') }}: {{ cols }}</label>
+        <div class="c-modal__slider-container">
+          <input 
+            type="range" 
+            v-model.number="cols" 
+            min="2" 
+            max="16" 
+            step="1"
+            class="c-modal__slider"
+          />
+          <div class="c-modal__slider-labels">
+            <span>2</span>
+            <span>16</span>
+          </div>
         </div>
       </div>
 
       <div class="c-modal__field">
-        <label>{{ $t('modal.cellSize') }}</label>
-        <div class="c-modal__cell-sizes">
-          <button 
-            v-for="size in ['small', 'medium', 'large']" 
-            :key="size"
-            type="button"
-            :class="{ 'is-selected': cellSize === size }"
-            @click="cellSize = size as 'small' | 'medium' | 'large'"
-          >
-            {{ size }}
-          </button>
+        <label>{{ $t('modal.rows') }}: {{ rows }}</label>
+        <div class="c-modal__slider-container">
+          <input 
+            type="range" 
+            v-model.number="rows" 
+            min="2" 
+            max="20" 
+            step="1"
+            class="c-modal__slider"
+          />
+          <div class="c-modal__slider-labels">
+            <span>2</span>
+            <span>20</span>
+          </div>
         </div>
       </div>
 
       <p v-if="error" class="c-modal__error">{{ error }}</p>
 
       <div class="c-modal__actions">
+        <BaseButton v-if="view && canDelete" variant="danger" @click="handleDelete" :disabled="loading" style="margin-right: auto;">
+          {{ $t('modal.delete') }}
+        </BaseButton>
         <BaseButton variant="secondary" @click="close">{{ $t('modal.cancel') }}</BaseButton>
         <BaseButton type="submit" variant="primary" :loading="loading">
-          {{ loading ? $t('modal.creating') : $t('modal.createView') }}
+          {{ view ? $t('modal.save') : $t('modal.createView') }}
         </BaseButton>
       </div>
     </form>
@@ -152,37 +208,6 @@ function close() {
   font-weight: 600;
 }
 
-.c-modal__cell-sizes {
-  display: flex;
-  gap: 12px;
-}
-
-.c-modal__cell-sizes button {
-  flex: 1;
-  padding: 12px;
-  border: 2px solid var(--color-border);
-  border-radius: 12px;
-  text-align: center;
-  cursor: pointer;
-  background: var(--color-bg-page);
-  color: var(--color-text-muted);
-  font-size: 0.9rem;
-  font-weight: 700;
-  text-transform: capitalize;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.c-modal__cell-sizes button:hover {
-  border-color: var(--color-text-muted);
-  color: var(--color-text-main);
-}
-
-.c-modal__cell-sizes button.is-selected {
-  border-color: var(--color-primary);
-  background-color: var(--color-bg-surface);
-  color: var(--color-primary);
-  box-shadow: var(--shadow-sm);
-}
 
 .c-modal__error {
   color: var(--color-danger);

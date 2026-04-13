@@ -19,6 +19,8 @@ const showToolsModal = ref(false)
 const searchQuery = ref('')
 const gridRef = ref<any>(null)
 const headerRef = ref<any>(null)
+const isHeaderHidden = ref(false)
+const viewToEdit = ref<ViewsResponse | null>(null)
 
 const sharedUrl = ref('')
 const sharedTitle = ref('')
@@ -59,6 +61,34 @@ const handleViewCreated = (view: ViewsResponse) => {
   showAddViewModal.value = false;
 }
 
+const handleEditView = (view: ViewsResponse) => {
+  viewToEdit.value = view;
+  showAddViewModal.value = true;
+}
+
+const handleViewUpdated = (updatedView: ViewsResponse) => {
+  const index = views.value.findIndex(v => v.id === updatedView.id);
+  if (index !== -1) {
+    views.value[index] = updatedView;
+  }
+}
+
+const handleViewDeleted = (id: string) => {
+  const index = views.value.findIndex(v => v.id === id);
+  if (index !== -1) {
+    views.value.splice(index, 1);
+    // If we deleted the current view, switch to another one
+    if (currentViewId.value === id) {
+      currentViewId.value = views.value.length > 0 ? (views.value[0]?.id || null) : null;
+    }
+  }
+}
+
+const closeAddViewModal = () => {
+  showAddViewModal.value = false;
+  viewToEdit.value = null;
+}
+
 async function fetchViews() {
   if (!isAuthenticated.value) return;
   try {
@@ -70,8 +100,8 @@ async function fetchViews() {
       const home = await pb.collection('views').create<ViewsResponse>({
         user: currentUser.value?.id,
         name: '🏠 Home',
-        cols: 8,
-        cell_size: 'medium',
+        cols: 6,
+        rows: 6,
       });
       records = [home];
     }
@@ -79,7 +109,7 @@ async function fetchViews() {
     if (!currentViewId.value && records.length > 0) {
       const savedViewId = localStorage.getItem('omi_last_view');
       const foundView = savedViewId ? records.find(v => v.id === savedViewId) : null;
-      currentViewId.value = foundView ? foundView.id : records[0]!.id;
+      currentViewId.value = foundView ? foundView.id : (records[0]?.id || null);
     }
   } catch (e) {
     console.error('Failed to fetch views', e);
@@ -133,18 +163,20 @@ onMounted(async () => {
 </script>
 
 <template>
-  <AppHeader 
-    ref="headerRef"
-    :is-authenticated="true"
-    :current-user="currentUser"
-    :is-edit-mode="isEditMode"
-    :current-view="currentView"
-    v-model:search-query="searchQuery"
-    @toggle-edit-mode="toggleEditMode"
-    @show-add-modal="showAddModal = true"
-    @show-tools-modal="showToolsModal = true"
-    @logout="logout"
-  />
+  <div class="l-dashboard" :class="{ 'is-header-hidden': isHeaderHidden }">
+    <AppHeader 
+      ref="headerRef"
+      :is-authenticated="true"
+      :current-user="currentUser"
+      :is-edit-mode="isEditMode"
+      :current-view="currentView"
+      v-model:search-query="searchQuery"
+      v-model:is-hidden="isHeaderHidden"
+      @toggle-edit-mode="toggleEditMode"
+      @show-add-modal="showAddModal = true"
+      @show-tools-modal="showToolsModal = true"
+      @logout="logout"
+    />
 
   <ViewTabs 
     v-if="currentView && tabPosition === 'top'"
@@ -153,6 +185,7 @@ onMounted(async () => {
     :is-edit-mode="isEditMode"
     @update:current-view-id="currentViewId = $event"
     @add-view="showAddViewModal = true"
+    @edit-view="handleEditView"
     @reorder="handleTabReorder"
   />
 
@@ -180,8 +213,13 @@ onMounted(async () => {
     
     <AddViewModal 
       v-if="showAddViewModal"
-      @close="showAddViewModal = false"
+      :show="showAddViewModal"
+      :view="viewToEdit"
+      :can-delete="views.length > 1"
+      @close="closeAddViewModal"
       @view-created="handleViewCreated"
+      @view-updated="handleViewUpdated"
+      @view-deleted="handleViewDeleted"
     />
 
     <ToolsModal
@@ -197,9 +235,11 @@ onMounted(async () => {
     :is-edit-mode="isEditMode"
     @update:current-view-id="currentViewId = $event"
     @add-view="showAddViewModal = true"
+    @edit-view="handleEditView"
     @reorder="handleTabReorder"
     class="is-bottom"
-  />
+    />
+  </div>
 </template>
 
 <style scoped>
@@ -213,4 +253,15 @@ onMounted(async () => {
 .l-main.has-tabs-bottom {
   padding-bottom: 0px; /* ViewTabs has its own height and safe areas */
 }
+
+/* Header hiding logic */
+.l-dashboard {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* No more root translate, we collapse the header itself */
 </style>

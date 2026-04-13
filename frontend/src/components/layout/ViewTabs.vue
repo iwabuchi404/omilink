@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
+import interact from 'interactjs';
 import type { ViewsResponse } from '../../lib/pocketbase-types';
 
 const props = defineProps<{
@@ -11,36 +12,85 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:currentViewId', id: string): void;
   (e: 'addView'): void;
+  (e: 'editView', view: ViewsResponse): void;
   (e: 'reorder', views: ViewsResponse[]): void;
 }>();
 
 const draggedIndex = ref<number | null>(null);
+let interactables: any[] = [];
 
-const onDragStart = (e: DragEvent, index: number) => {
-  draggedIndex.value = index;
-  if (e.dataTransfer) {
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.dropEffect = 'move';
-  }
+const setupInteract = () => {
+  if (interactables.length) return;
+
+  const tabs = interact('.c-view-tabs__tab').draggable({
+    enabled: props.isEditMode,
+    allowFrom: '.c-view-tabs__handle',
+    listeners: {
+      start(event) {
+        const index = parseInt(event.target.getAttribute('data-index'));
+        draggedIndex.value = index;
+        event.target.classList.add('is-dragging');
+      },
+      move(event) {
+        const index = draggedIndex.value;
+        if (index === null) return;
+        
+        const target = event.target;
+        const centerX = event.clientX;
+        
+        // Find if we should swap with left or right neighbor
+        const neighborLeft = target.previousElementSibling as HTMLElement;
+        const neighborRight = target.nextElementSibling as HTMLElement;
+        
+        if (neighborLeft && neighborLeft.classList.contains('c-view-tabs__tab')) {
+          const leftRect = neighborLeft.getBoundingClientRect();
+          if (centerX < leftRect.right - leftRect.width / 2) {
+            swap(index, index - 1);
+            return;
+          }
+        }
+        
+        if (neighborRight && neighborRight.classList.contains('c-view-tabs__tab')) {
+          const rightRect = neighborRight.getBoundingClientRect();
+          if (centerX > rightRect.left + rightRect.width / 2) {
+            swap(index, index + 1);
+            return;
+          }
+        }
+      },
+      end(event) {
+        draggedIndex.value = null;
+        event.target.classList.remove('is-dragging');
+      }
+    }
+  });
+
+  interactables.push(tabs);
 };
 
-const onDragOver = (e: DragEvent, index: number) => {
-  e.preventDefault();
-  if (draggedIndex.value === null || draggedIndex.value === index) return;
+const swap = (from: number, to: number) => {
+  if (to < 0 || to >= props.views.length) return;
   
   const newViews = [...props.views];
-  const draggedTab = newViews.splice(draggedIndex.value, 1)[0];
-  if (!draggedTab) return;
+  const item = newViews.splice(from, 1)[0];
+  if (!item) return;
+  newViews.splice(to, 0, item);
   
-  newViews.splice(index, 0, draggedTab);
-  
-  draggedIndex.value = index;
+  draggedIndex.value = to;
   emit('reorder', newViews);
 };
 
-const onDragEnd = () => {
-  draggedIndex.value = null;
-};
+onMounted(() => {
+  setupInteract();
+});
+
+onUnmounted(() => {
+  interactables.forEach(i => i.unset());
+});
+
+watch(() => props.isEditMode, (newVal) => {
+  interact('.c-view-tabs__tab').draggable({ enabled: newVal });
+});
 </script>
 
 <template>
@@ -56,14 +106,19 @@ const onDragEnd = () => {
             'is-dragging': draggedIndex === index,
             'is-sortable': isEditMode
           }"
-          :draggable="isEditMode"
-          @click="$emit('update:currentViewId', v.id)"
-          @dragstart="onDragStart($event, index)"
-          @dragover="onDragOver($event, index)"
-          @dragend="onDragEnd"
+          :data-index="index"
+          @click="!isEditMode && $emit('update:currentViewId', v.id)"
         >
           <span v-if="isEditMode" class="c-view-tabs__handle">⠿</span>
           <span class="c-view-tabs__tab-name">{{ v.name }}</span>
+          <button 
+            v-if="isEditMode" 
+            class="c-view-tabs__settings-btn"
+            @click.stop="$emit('editView', v)"
+            :title="$t('modal.viewSettings')"
+          >
+            ⚙️
+          </button>
         </button>
       </TransitionGroup>
 
@@ -131,6 +186,8 @@ const onDragEnd = () => {
 
 .c-view-tabs__tab.is-sortable {
   cursor: grab;
+  padding-left: 10px;
+  touch-action: pan-x; /* Allow horizontal scrolling on the tab itself */
 }
 
 .l-sub-header.is-bottom .c-view-tabs__tab {
@@ -153,10 +210,13 @@ const onDragEnd = () => {
 }
 
 .c-view-tabs__handle {
-  font-size: 1.1rem;
-  opacity: 0.3;
-  margin-right: -4px;
+  font-size: 1.25rem;
+  opacity: 0.4;
+  margin-right: -2px;
+  margin-left: -2px;
+  padding: 4px;
   transition: opacity 0.2s;
+  touch-action: none; /* Critical for mobile drag */
 }
 
 .c-view-tabs__tab:hover .c-view-tabs__handle {
@@ -167,6 +227,30 @@ const onDragEnd = () => {
   opacity: 0.2;
   background-color: var(--color-bg-page);
   cursor: grabbing;
+}
+
+.c-view-tabs__settings-btn {
+  background: none;
+  border: none;
+  padding: 6px;
+  margin-left: 6px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  opacity: 0.6;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.c-view-tabs__settings-btn:hover {
+  opacity: 1;
+  background-color: rgba(0,0,0,0.05);
+}
+
+[data-theme="dark"] .c-view-tabs__settings-btn:hover {
+  background-color: rgba(255,255,255,0.1);
 }
 
 /* Transition Group Animations */

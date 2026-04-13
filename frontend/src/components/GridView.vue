@@ -149,7 +149,7 @@ async function deleteItem(item: ViewItem) {
 }
 
 const gridHeight = computed(() => {
-  const maxY = items.value.reduce((max, item) => Math.max(max, item.y + item.h), 10);
+  const maxY = items.value.reduce((max, item) => Math.max(max, item.y + item.h), props.currentView?.rows || 6);
   return maxY * (gridSize || 100);
 });
 
@@ -292,6 +292,8 @@ onUnmounted(() => {
   -webkit-overflow-scrolling: touch;
   background-color: var(--color-bg-page);
   transition: background-color 0.3s ease;
+  user-select: none;
+  touch-action: none;
 }
 
 .p-grid__container {
@@ -335,6 +337,11 @@ onUnmounted(() => {
   filter: grayscale(1) blur(1px);
   pointer-events: none;
   z-index: 1;
+}
+
+/* Prevent clicks during panning */
+.p-grid.is-panning .c-card-wrapper {
+  pointer-events: none;
 }
 
 /* Resize handle style improvement */

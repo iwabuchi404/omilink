@@ -60,8 +60,7 @@
     "viewName": "View Name",
     "viewNamePlaceholder": "e.g. Tech, Reading List...",
     "columns": "Columns",
-    "columnsCount": "columns",
-    "cellSize": "Cell Size",
+    "rows": "Rows",
     "createView": "Create View",
     "creating": "Creating...",
     "editBookmark": "Edit Bookmark",
@@ -69,7 +68,10 @@
     "saveChanges": "Save Changes",
     "saving": "Saving...",
     "urlPlaceholder": "https://...",
-    "contentPlaceholder": "Content..."
+    "contentPlaceholder": "Content...",
+    "viewSettings": "View Settings",
+    "delete": "Delete",
+    "save": "Save"
   },
   "grid": {
     "loading": "Loading your bookmarks...",
