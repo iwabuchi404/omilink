@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import pb from '../lib/pocketbase';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 
 const router = useRouter();
+const route = useRoute();
 const { locale } = useI18n();
 
 const currentLanguage = ref(locale.value === 'ja' ? 'JA' : 'EN');
@@ -51,14 +52,57 @@ async function handleGoogleLogin() {
   error.value = '';
   loading.value = true;
   try {
-    await pb.collection('users').authWithOAuth2({ provider: 'google' });
-    router.push({ name: 'dashboard' })
+    const authMethods = await pb.collection('users').listAuthMethods();
+    const provider = authMethods.oauth2.providers.find((p: any) => p.name === 'google');
+    
+    if (!provider) {
+      throw new Error("Google login is not configured.");
+    }
+    
+    localStorage.setItem('provider', JSON.stringify(provider));
+    
+    const redirectUrl = window.location.origin + '/login';
+    window.location.href = provider.authURL + redirectUrl;
+    // We don't push to dashboard here because browser will redirect
   } catch (err: any) {
     error.value = err.message || 'Google Authentication failed';
-  } finally {
     loading.value = false;
   }
 }
+
+onMounted(async () => {
+  // Check if we are returning from Google OAuth redirect
+  if (route.query.code && route.query.state) {
+    loading.value = true;
+    error.value = '';
+    try {
+      const providerRaw = localStorage.getItem('provider');
+      if (!providerRaw) throw new Error("Missing initial provider tracking.");
+      const provider = JSON.parse(providerRaw);
+
+      if (provider.state !== route.query.state) {
+        throw new Error("State parameters don't match.");
+      }
+
+      const redirectUrl = window.location.origin + '/login';
+      await pb.collection('users').authWithOAuth2Code(
+          provider.name,
+          route.query.code as string,
+          provider.codeVerifier,
+          redirectUrl
+      );
+      
+      router.push({ name: 'dashboard' });
+    } catch (err: any) {
+      error.value = err.message || 'Google Authentication failed processing callback.';
+    } finally {
+      loading.value = false;
+      localStorage.removeItem('provider');
+      // Clean up the URL without reloading
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }
+});
 </script>
 
 <template>
