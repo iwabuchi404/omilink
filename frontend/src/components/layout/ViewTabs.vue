@@ -216,9 +216,9 @@ watch(() => props.isEditMode, (newVal) => {
 .c-view-tabs__handle {
   font-size: 1.25rem;
   opacity: 0.4;
-  margin-right: -2px;
-  margin-left: -2px;
-  padding: 4px;
+  margin-right: -4px;
+  margin-left: -10px;
+  padding: 8px 12px;
   transition: opacity 0.2s;
   touch-action: none; /* Critical for mobile drag */
 }

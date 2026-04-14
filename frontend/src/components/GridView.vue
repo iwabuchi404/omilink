@@ -12,7 +12,7 @@ type ExpandedViewItem = PlacementsResponse<{ item: ItemsResponse }>;
 
 const emit = defineEmits<{
   (e: 'move-success'): void;
-  (e: 'scroll', scrollTop: number): void;
+  (e: 'scroll', data: { scrollTop: number, scrollHeight: number, clientHeight: number }): void;
 }>();
 
 const props = defineProps<{
@@ -48,7 +48,11 @@ function openAddToViewModal(item: ViewItem) {
 
 const onScroll = (e: Event) => {
   const target = e.target as HTMLElement;
-  emit('scroll', target.scrollTop);
+  emit('scroll', {
+    scrollTop: target.scrollTop,
+    scrollHeight: target.scrollHeight,
+    clientHeight: target.clientHeight
+  });
 };
 
 const filteredItems = computed(() => {
@@ -148,8 +152,8 @@ async function deleteItem(item: ViewItem) {
   }
 }
 
-const gridSize = ref(110);
-const gap = ref(10);
+const gridSize = ref(78);
+const gap = ref(12);
 
 const gridHeight = computed(() => {
   const minRows = props.currentView?.rows || 1;
@@ -355,15 +359,14 @@ onUnmounted(() => {
 .c-grid-container.is-edit-mode .c-card-wrapper::after {
   content: '';
   position: absolute;
-  right: 4px;
-  bottom: 4px;
-  width: 12px;
-  height: 12px;
-  background: var(--color-primary);
-  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  right: 0;
+  bottom: 0;
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, transparent 70%, var(--color-primary) 70%);
   cursor: nwse-resize;
-  border-radius: 0 0 4px 0;
-  opacity: 0.6;
+  border-radius: 0 0 12px 0;
+  opacity: 0.4;
   transition: opacity 0.2s;
   z-index: 20;
 }

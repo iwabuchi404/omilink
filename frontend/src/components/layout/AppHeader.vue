@@ -51,23 +51,36 @@ watch(isHidden, (newVal) => {
   emit('update:isHidden', newVal);
 });
 
-const handleScroll = (scrollTop: number) => {
+const handleScroll = (data: { scrollTop: number, scrollHeight: number, clientHeight: number }) => {
   if (window.innerWidth > 768) {
     isHidden.value = false;
     return;
   }
   
+  const { scrollTop, scrollHeight, clientHeight } = data;
+  const maxScroll = scrollHeight - clientHeight;
   const delta = scrollTop - lastScrollTop.value;
-  
+
   // Ignore tiny movements to prevent jitter
   if (Math.abs(delta) < 5) return;
+
+  // Bounce detection (Overscroll)
+  // If we are outside the normal scroll range, we are bouncing.
+  // We ignore updates during bounce to prevent flickering.
+  if (scrollTop < 0 || scrollTop > maxScroll) {
+    lastScrollTop.value = scrollTop;
+    return;
+  }
 
   if (scrollTop < 50) {
     // Always show when near the top
     isHidden.value = false;
   } else if (delta > 0 && scrollTop > 100) {
     // Scroll down: Hide header
-    isHidden.value = true;
+    // But don't hide if we are at the very bottom (to avoid jumping)
+    if (scrollTop < maxScroll - 20) {
+      isHidden.value = true;
+    }
   } else if (delta < -15) {
     // Significant scroll up: Show header
     isHidden.value = false;
