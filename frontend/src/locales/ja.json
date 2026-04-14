@@ -80,5 +80,9 @@
     "editDetails": "詳細を編集",
     "addToView": "他のビューに追加",
     "moveToTrash": "ゴミ箱へ移動"
+  },
+  "pwa": {
+    "installBtn": "アプリをインストール",
+    "iosInstructions": "iPhoneでインストールするには：共有ボタンをタップして「ホーム画面に追加」を選択してください。"
   }
 }

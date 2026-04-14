@@ -3,6 +3,7 @@ import { ref, computed, inject, watch, onMounted, onUnmounted, type Ref } from '
 import { useI18n } from 'vue-i18n';
 import type { UsersResponse, ViewsResponse } from '../../lib/pocketbase-types';
 import type { Theme } from '../../composables/useTheme';
+import { usePWAInstall } from '../../composables/usePWAInstall';
 
 defineProps<{
   isAuthenticated: boolean;
@@ -43,6 +44,8 @@ const theme = inject('theme') as Ref<Theme>;
 const toggleTheme = inject('toggleTheme') as () => void;
 const tabPosition = inject('tabPosition') as Ref<'top' | 'bottom'>;
 const toggleTabPosition = inject('toggleTabPosition') as () => void;
+
+const { isInstallable, isStandalone, isIOS, installApp } = usePWAInstall();
 
 const isHidden = ref(false);
 const lastScrollTop = ref(0);
@@ -108,7 +111,7 @@ const themeIcon = computed(() => {
 <template>
   <header class="l-header" :class="{ 'is-edit-mode': isEditMode, 'is-hidden': isHidden }">
     <div class="l-header__logo">
-      <span class="l-header__logo-icon">🔗</span>
+      <img src="/pwa-192x192.png" alt="OmiLink" class="l-header__logo-img" />
       OmiLink
     </div>
     
@@ -183,6 +186,17 @@ const themeIcon = computed(() => {
             <span class="l-header__dropdown-email">{{ currentUser?.email }}</span>
           </div>
           <div class="l-header__dropdown-divider"></div>
+          
+          <template v-if="!isStandalone && (isInstallable || isIOS)">
+            <button v-if="isInstallable" class="l-header__dropdown-item pwa-install-btn" @click="installApp(); showUserMenu = false">
+              <span>📱</span> {{ $t('pwa.installBtn') }}
+            </button>
+            <div v-else-if="isIOS" class="l-header__dropdown-item ios-instruction" @click.stop>
+              <span>📱</span> {{ $t('pwa.iosInstructions') }}
+            </div>
+            <div class="l-header__dropdown-divider"></div>
+          </template>
+
           <button class="l-header__dropdown-item" @click="toggleTheme(); showUserMenu = false">
             <span>{{ themeIcon }}</span> {{ $t('header.theme') }}: {{ theme }}
           </button>
@@ -255,8 +269,11 @@ const themeIcon = computed(() => {
   color: var(--color-text-main);
 }
 
-.l-header__logo-icon {
-  font-size: 1.5rem;
+.l-header__logo-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  object-fit: cover;
 }
 
 .l-header__search {
@@ -534,6 +551,19 @@ const themeIcon = computed(() => {
   color: var(--color-text-main);
   text-align: left;
   transition: all 0.2s ease;
+}
+
+.l-header__dropdown-item.pwa-install-btn {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.l-header__dropdown-item.ios-instruction {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  cursor: default;
+  white-space: normal;
+  line-height: 1.4;
 }
 
 .l-header__dropdown-item:hover {

@@ -149,12 +149,21 @@ onMounted(async () => {
 
   if (pUrl) {
     let finalUrl = pUrl;
-    if (pUrl.includes('http')) {
-      const match = pUrl.match(/(https?:\/\/[^\s]+)/);
-      if (match && match[1]) finalUrl = match[1];
+    // Extract URL if it's embedded in text (common on Android Share)
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const match = pUrl.match(urlRegex);
+    if (match && match[0]) {
+      finalUrl = match[0];
     }
+    
     sharedUrl.value = finalUrl;
-    if (pTitle) sharedTitle.value = pTitle as string;
+    if (pTitle) {
+      sharedTitle.value = pTitle as string;
+    } else if (pUrl !== finalUrl) {
+      // If we extracted a URL from text, use the remaining text as title if possible
+      const potentialTitle = pUrl.replace(finalUrl, '').trim();
+      if (potentialTitle) sharedTitle.value = potentialTitle;
+    }
     
     window.history.replaceState({}, document.title, window.location.pathname);
     showAddModal.value = true;

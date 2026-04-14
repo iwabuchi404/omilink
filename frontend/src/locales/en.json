@@ -80,5 +80,9 @@
     "editDetails": "Edit Details",
     "addToView": "Add to another view",
     "moveToTrash": "Move to Trash"
+  },
+  "pwa": {
+    "installBtn": "Install App",
+    "iosInstructions": "To install on iPhone: tap the Share button and select 'Add to Home Screen'."
   }
 }
