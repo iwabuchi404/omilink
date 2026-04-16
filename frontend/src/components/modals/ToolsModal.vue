@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import BaseModal from '../ui/BaseModal.vue';
 import BaseButton from '../ui/BaseButton.vue';
 
@@ -8,6 +9,7 @@ defineProps<{
 }>();
 
 const emit = defineEmits(['close']);
+const { t } = useI18n();
 
 const baseUrl = computed(() => window.location.origin);
 
@@ -17,29 +19,29 @@ const bookmarkletCode = computed(() => {
 </script>
 
 <template>
-  <BaseModal :show="show" title="OmiLink Tools" maxWidth="500px" @close="emit('close')">
+  <BaseModal :show="show" :title="t('tools.title')" maxWidth="500px" @close="emit('close')">
     <div class="c-tools-section">
-      <h4>PC Browser Bookmarklet</h4>
+      <h4>{{ $t('tools.pcBookmarklet') }}</h4>
       <p class="c-tools-desc">
-        Drag the button below to your browser's bookmarks bar. 
-        Clicking it on any website will instantly save that page to your OmiLink!
+        {{ $t('tools.desc1') }}<br>
+        {{ $t('tools.desc2') }}
       </p>
       
       <div class="c-bookmarklet-container">
         <a :href="bookmarkletCode" class="c-bookmarklet-btn" @click.prevent>
-          ➕ Save to OmiLink
+          {{ $t('tools.btn') }}
         </a>
       </div>
       
       <p class="c-tools-hint">
-        * Note: Make sure your bookmarks bar is visible (Ctrl+Shift+B or Cmd+Shift+B).<br>
-        If dragging doesn't work, create a new bookmark manually and paste this code as the URL:
+        {{ $t('tools.hint1') }}<br>
+        {{ $t('tools.hint2') }}
       </p>
       <textarea readonly :value="bookmarkletCode" class="c-code-box" @click="($event.target as HTMLTextAreaElement)?.select()"></textarea>
     </div>
 
     <template #footer>
-      <BaseButton variant="primary" @click="emit('close')">Close</BaseButton>
+      <BaseButton variant="primary" @click="emit('close')">{{ $t('modal.cancel') }}</BaseButton>
     </template>
   </BaseModal>
 </template>

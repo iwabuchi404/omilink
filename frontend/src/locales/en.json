@@ -79,10 +79,21 @@
     "cardOptions": "Options",
     "editDetails": "Edit Details",
     "addToView": "Add to another view",
-    "moveToTrash": "Move to Trash"
+    "moveToTrash": "Move to Trash",
+    "confirmTrash": "Move \"{title}\" to Trash?"
   },
   "pwa": {
     "installBtn": "Install App",
-    "iosInstructions": "To install on iPhone: tap the Share button and select 'Add to Home Screen'."
+    "iosModalTitle": "Installation Guide",
+    "iosInstructions": "To install as an app on iPhone or iPad, tap the Share button at the bottom of Safari, and select 'Add to Home Screen'."
+  },
+  "tools": {
+    "title": "OmiLink Tools",
+    "pcBookmarklet": "PC Browser Bookmarklet",
+    "desc1": "Drag the button below to your browser's bookmarks bar.",
+    "desc2": "Clicking it on any website will instantly save that page to your OmiLink!",
+    "btn": "➕ Save to OmiLink",
+    "hint1": "* Note: Make sure your bookmarks bar is visible (Ctrl+Shift+B or Cmd+Shift+B).",
+    "hint2": "If dragging doesn't work, create a new bookmark manually and paste this code as the URL:"
   }
 }

@@ -49,6 +49,7 @@ const { isInstallable, isStandalone, isIOS, installApp } = usePWAInstall();
 
 const isHidden = ref(false);
 const lastScrollTop = ref(0);
+const showIosInstallModal = ref(false);
 
 watch(isHidden, (newVal) => {
   emit('update:isHidden', newVal);
@@ -191,9 +192,9 @@ const themeIcon = computed(() => {
             <button v-if="isInstallable" class="l-header__dropdown-item pwa-install-btn" @click="installApp(); showUserMenu = false">
               <span>📱</span> {{ $t('pwa.installBtn') }}
             </button>
-            <div v-else-if="isIOS" class="l-header__dropdown-item ios-instruction" @click.stop>
-              <span>📱</span> {{ $t('pwa.iosInstructions') }}
-            </div>
+            <button v-else-if="isIOS" class="l-header__dropdown-item pwa-install-btn" @click="showIosInstallModal = true; showUserMenu = false">
+              <span>📱</span> {{ $t('pwa.installBtn') }}
+            </button>
             <div class="l-header__dropdown-divider"></div>
           </template>
 
@@ -214,6 +215,20 @@ const themeIcon = computed(() => {
           <button class="l-header__dropdown-item" @click="$emit('logout'); showUserMenu = false">
             <span>🔓</span> {{ $t('header.logout') }}
           </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- iOS Install Modal Overlay -->
+    <div v-if="showIosInstallModal" class="c-ios-modal-overlay" @click="showIosInstallModal = false">
+      <div class="c-ios-modal" @click.stop>
+        <div class="c-ios-modal__header">
+          <h3>{{ $t('pwa.iosModalTitle') }}</h3>
+          <button class="c-ios-modal__close" @click="showIosInstallModal = false">✕</button>
+        </div>
+        <div class="c-ios-modal__body">
+          <p>{{ $t('pwa.iosInstructions') }}</p>
+          <button class="c-ios-modal__btn" @click="showIosInstallModal = false">{{ $t('modal.cancel') }}</button>
         </div>
       </div>
     </div>
@@ -558,14 +573,6 @@ const themeIcon = computed(() => {
   font-weight: 700;
 }
 
-.l-header__dropdown-item.ios-instruction {
-  font-size: 0.8rem;
-  opacity: 0.8;
-  cursor: default;
-  white-space: normal;
-  line-height: 1.4;
-}
-
 .l-header__dropdown-item:hover {
   background-color: var(--color-bg-page);
   color: var(--color-primary);
@@ -577,5 +584,57 @@ const themeIcon = computed(() => {
 
 .l-header__dropdown-item.is-danger:hover {
   background-color: rgba(220, 53, 69, 0.05);
+}
+
+/* iOS Modal */
+.c-ios-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.c-ios-modal {
+  background: var(--color-bg-modal);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+  border-radius: 16px;
+  width: 90%;
+  max-width: 320px;
+  overflow: hidden;
+}
+.c-ios-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+.c-ios-modal__header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--color-text-main);
+  font-weight: 700;
+}
+.c-ios-modal__close {
+  background: none; border: none; cursor: pointer; color: var(--color-text-muted); font-size: 1.2rem;
+}
+.c-ios-modal__body {
+  padding: 20px; text-align: center;
+}
+.c-ios-modal__body p {
+  color: var(--color-text-main); font-size: 0.95rem; margin-bottom: 24px; line-height: 1.5;
+}
+.c-ios-modal__btn {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 10px 24px;
+  color: var(--color-text-main);
+  font-weight: 600;
+  cursor: pointer;
 }
 </style>

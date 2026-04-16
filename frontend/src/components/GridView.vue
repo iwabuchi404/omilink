@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch, onUnmounted, toRef } from 'vue';
+import { useI18n } from 'vue-i18n';
 import pb from '../lib/pocketbase';
 import GridCard from './grid/GridCard.vue';
 import EditItemModal from './modals/EditItemModal.vue';
@@ -14,6 +15,8 @@ const emit = defineEmits<{
   (e: 'move-success'): void;
   (e: 'scroll', data: { scrollTop: number, scrollHeight: number, clientHeight: number }): void;
 }>();
+
+const { t } = useI18n();
 
 const props = defineProps<{
   isEditMode: boolean;
@@ -137,7 +140,7 @@ async function removeItem(item: ViewItem) {
 
 // Soft-delete: mark item as is_deleted, remove all its placements from view
 async function deleteItem(item: ViewItem) {
-  if (!confirm(`Move "${item.title}" to Trash?`)) return;
+  if (!confirm(t('grid.confirmTrash', { title: item.title }))) return;
 
   try {
     // Soft-delete the item

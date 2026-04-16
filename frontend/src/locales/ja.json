@@ -79,10 +79,21 @@
     "cardOptions": "オプション",
     "editDetails": "詳細を編集",
     "addToView": "他のビューに追加",
-    "moveToTrash": "ゴミ箱へ移動"
+    "moveToTrash": "ゴミ箱へ移動",
+    "confirmTrash": "「{title}」をゴミ箱へ移動しますか？"
   },
   "pwa": {
     "installBtn": "アプリをインストール",
-    "iosInstructions": "iPhoneでインストールするには：共有ボタンをタップして「ホーム画面に追加」を選択してください。"
+    "iosModalTitle": "インストール方法",
+    "iosInstructions": "iPhoneやiPadでインストールするには、ブラウザ下部の「共有ボタン」をタップし、メニューから「ホーム画面に追加」を選択してください。"
+  },
+  "tools": {
+    "title": "OmiLink ツールの設定",
+    "pcBookmarklet": "ブラウザ専用ブックマークレット",
+    "desc1": "下のボタンをブラウザのブックマークバーにドラッグ＆ドロップしてください。",
+    "desc2": "気になるウェブサイトを見ている時にそのブックマークをクリックすると、瞬時にOmiLinkに保存されます！",
+    "btn": "➕ OmiLinkに保存",
+    "hint1": "※ブックマークバーが表示されていることを確認してください（Ctrl+Shift+B または Cmd+Shift+B）",
+    "hint2": "ドラッグで登録できない場合は、手動でブックマークを作成し、以下のコードをURLとして貼り付けてください："
   }
 }
