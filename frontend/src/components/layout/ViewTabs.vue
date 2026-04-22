@@ -126,6 +126,17 @@ watch(() => props.isEditMode, (newVal) => {
         </button>
       </TransitionGroup>
 
+      <button
+        class="c-view-tabs__tab is-system-tab"
+        :class="{ 'is-active': currentViewId === 'trash' }"
+        @click="$emit('update:currentViewId', 'trash')"
+        :draggable="false"
+      >
+        <span class="c-view-tabs__tab-name">🗑️ {{ $t('trash.title') || 'Trash' }}</span>
+      </button>
+
+      <div class="c-view-tabs__spacer"></div>
+
       <button class="c-view-tabs__add-btn" @click="$emit('addView')" :title="$t('modal.newView')">
         <span>＋</span>
       </button>
@@ -186,6 +197,7 @@ watch(() => props.isEditMode, (newVal) => {
   gap: 8px;
   letter-spacing: -0.01em;
   user-select: none;
+  position: relative;
 }
 
 .c-view-tabs__tab.is-sortable {
@@ -206,11 +218,35 @@ watch(() => props.isEditMode, (newVal) => {
 
 .c-view-tabs__tab.is-active {
   color: var(--color-primary);
-  border-bottom-color: var(--color-primary);
 }
 
-.l-sub-header.is-bottom .c-view-tabs__tab.is-active {
-  border-top-color: var(--color-primary);
+.c-view-tabs__tab.is-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: var(--color-primary);
+  border-radius: 3px 3px 0 0;
+}
+
+.l-sub-header.is-bottom .c-view-tabs__tab.is-active::after {
+  top: 0;
+  bottom: auto;
+  border-radius: 0 0 3px 3px;
+}
+
+.c-view-tabs__tab.is-system-tab {
+  opacity: 0.8;
+  margin-left: 12px;
+}
+.c-view-tabs__tab.is-system-tab:hover {
+  opacity: 1;
+}
+
+.c-view-tabs__spacer {
+  flex: 1;
 }
 
 .c-view-tabs__handle {

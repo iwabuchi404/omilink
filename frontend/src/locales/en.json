@@ -14,7 +14,12 @@
     "or": "or",
     "continueGoogle": "Continue with Google",
     "switchToSignup": "Don't have an account? Sign Up",
-    "switchToLogin": "Already have an account? Login"
+    "switchToLogin": "Already have an account? Login",
+    "forgotPassword": "Forgot Password?",
+    "resetDesc": "Enter your registered email address. We will send you a link to reset your password.",
+    "sendResetEmail": "Send Reset Email",
+    "resetEmailSent": "Password reset email sent.",
+    "backToLogin": "Back to Login"
   },
   "header": {
     "addBookmark": "Add Bookmark",
@@ -95,5 +100,39 @@
     "btn": "➕ Save to OmiLink",
     "hint1": "* Note: Make sure your bookmarks bar is visible (Ctrl+Shift+B or Cmd+Shift+B).",
     "hint2": "If dragging doesn't work, create a new bookmark manually and paste this code as the URL:"
+  },
+  "trash": {
+    "title": "Trash",
+    "emptyBtn": "Empty Trash",
+    "emptyConfirm": "Are you sure you want to permanently delete all items in the trash? This cannot be undone.",
+    "deleteConfirm": "Are you sure you want to permanently delete '{title}'?",
+    "restore": "Restore",
+    "deletePermanent": "Delete Permanently"
+  },
+  "guide": {
+    "title": "OmiLink Guide",
+    "tab1": "📝 Basic Usage",
+    "tab2": "➕ Add Items",
+    "tab3": "📱 App Install",
+    "tab1Title": "Grid Layout & Organization",
+    "tab1Desc": "OmiLink allows you to freely arrange your bookmarks and memos.",
+    "tab1Li1Title": "Edit Mode:",
+    "tab1Li1Desc": "Click the ✎ button in the top right header to enter Edit Mode. In Edit Mode, you can drag and drop items to arrange them.",
+    "tab1Li2Title": "Resize & Operations:",
+    "tab1Li2Desc": "While in Edit Mode, click the ⋯ menu on any card to edit its details, change its size, or move it to the trash.",
+    "tab1Li3Title": "Views (Tabs):",
+    "tab1Li3Desc": "Use the tab bar to create multiple screens. You can move items between tabs using the card menu.",
+    "tab2Title": "Saving content",
+    "tab2Desc": "There are several ways to save links and notes.",
+    "tab2Li1Title": "Manual Entry:",
+    "tab2Li1Desc": "Click the ＋ button at the top right to paste a URL or write a new text memo.",
+    "tab2Li2Title": "PC Bookmarklet:",
+    "tab2Li2Desc": "Open the \"OmiLink Tools\" from your user profile menu to get a bookmarklet. Click it on any website to save instantly!",
+    "tab2Li3Title": "Mobile Sharing:",
+    "tab2Li3Desc": "On mobile, you can use the Share (📤) button in your browser and select OmiLink (if installed) to save directly.",
+    "tab3Title": "Install as App",
+    "tab3Desc": "Install OmiLink on your device home screen for a full-screen app experience and easy native sharing.",
+    "installed": "You are already using the installed App version! 🎉",
+    "tab3BrowserInstall": "To install, look for the 'Install App' or 'Add to Home Screen' option in your browser menu."
   }
 }

@@ -4,9 +4,11 @@ import pb from '../lib/pocketbase'
 import AppHeader from '../components/layout/AppHeader.vue'
 import ViewTabs from '../components/layout/ViewTabs.vue'
 import GridView from '../components/GridView.vue'
+import TrashView from '../components/TrashView.vue'
 import AddItemModal from '../components/modals/AddItemModal.vue'
 import AddViewModal from '../components/modals/AddViewModal.vue'
 import ToolsModal from '../components/modals/ToolsModal.vue'
+import GuideModal from '../components/modals/GuideModal.vue'
 import type { ViewsResponse } from '../lib/pocketbase-types'
 import { useAuth } from '../composables/useAuth'
 
@@ -16,6 +18,7 @@ const isEditMode = ref(false)
 const showAddModal = ref(false)
 const showAddViewModal = ref(false)
 const showToolsModal = ref(false)
+const showGuideModal = ref(false)
 const searchQuery = ref('')
 const gridRef = ref<any>(null)
 const headerRef = ref<any>(null)
@@ -97,13 +100,101 @@ async function fetchViews() {
       sort: 'sort_order,created' 
     });
     if (records.length === 0) {
+      // First time user! Create Home and Bookmarks views
       const home = await pb.collection('views').create<ViewsResponse>({
         user: currentUser.value?.id,
         name: '🏠 Home',
         cols: 6,
         rows: 6,
+        cell_size: '120px',
+        sort_order: 1
       });
-      records = [home];
+      
+      const bookmarks = await pb.collection('views').create<ViewsResponse>({
+        user: currentUser.value?.id,
+        name: '🔖 Bookmarks',
+        cols: 6,
+        rows: 6,
+        cell_size: '120px',
+        sort_order: 2
+      });
+      
+      records = [home, bookmarks];
+
+      // Inject tutorial data into Home
+      const tutorialMemo = await pb.collection('items').create({
+        type: 'memo',
+        title: '🎊 OmiLinkへようこそ！',
+        memo: '私はチュートリアル用のメモです。\nヘッダーの「✎」ボタンを押してから、私をドラッグして好きな場所に動かして遊んでみてください！\n\n（使い終わったら、右上の ⋯ メニューからゴミ箱へ移動して消してくださいね🗑️）',
+        is_deleted: false,
+        user: currentUser.value?.id
+      });
+      await pb.collection('placements').create({
+        item: tutorialMemo.id, view: home.id, user: currentUser.value?.id,
+        col: 0, row: 0, width: 4, height: 3
+      });
+
+      const guideBookmark = await pb.collection('items').create({
+        type: 'bookmark',
+        title: '📖 OmiLink使い方ガイドを開く',
+        url: window.location.origin + '/?show=guide',
+        memo: '',
+        is_deleted: false,
+        user: currentUser.value?.id
+      });
+      await pb.collection('placements').create({
+        item: guideBookmark.id, view: home.id, user: currentUser.value?.id,
+        col: 0, row: 3, width: 4, height: 2
+      });
+
+      const addBookmarkMemo = await pb.collection('items').create({
+        type: 'memo',
+        title: '➕ ブックマーク追加',
+        memo: '右上の「＋」ボタンをクリックして、新しいURLやテキストをスクラップしましょう！',
+        is_deleted: false,
+        user: currentUser.value?.id
+      });
+      await pb.collection('placements').create({
+        item: addBookmarkMemo.id, view: home.id, user: currentUser.value?.id,
+        col: 0, row: 5, width: 4, height: 3
+      });
+
+      const easyAddMemo = await pb.collection('items').create({
+        type: 'memo',
+        title: '🚀 簡単に保存する方法',
+        memo: 'スマホなら「アプリとしてインストール」すると便利です！\nPCならユーザーメニューから「ブックマークレット」をブラウザに登録すれば、閲覧中の記事を1クリックで保存できますよ。',
+        is_deleted: false,
+        user: currentUser.value?.id
+      });
+      await pb.collection('placements').create({
+        item: easyAddMemo.id, view: home.id, user: currentUser.value?.id,
+        col: 0, row: 8, width: 4, height: 3
+      });
+
+      // Inject sample data into Bookmarks
+      const googleId = await pb.collection('items').create({
+        type: 'bookmark', title: 'Google', url: 'https://www.google.com', memo: '', is_deleted: false, user: currentUser.value?.id
+      });
+      await pb.collection('placements').create({
+        item: googleId.id, view: bookmarks.id, user: currentUser.value?.id,
+        col: 0, row: 0, width: 4, height: 2
+      });
+
+      const wikipediaId = await pb.collection('items').create({
+        type: 'bookmark', title: 'Wikipedia', url: 'https://ja.wikipedia.org', memo: '', is_deleted: false, user: currentUser.value?.id
+      });
+      await pb.collection('placements').create({
+        item: wikipediaId.id, view: bookmarks.id, user: currentUser.value?.id,
+        col: 0, row: 2, width: 4, height: 2
+      });
+
+      const amazonId = await pb.collection('items').create({
+        type: 'bookmark', title: 'Amazon', url: 'https://www.amazon.co.jp', memo: '', is_deleted: false, user: currentUser.value?.id
+      });
+      await pb.collection('placements').create({
+        item: amazonId.id, view: bookmarks.id, user: currentUser.value?.id,
+        col: 0, row: 4, width: 4, height: 2
+      });
     }
     views.value = records;
     if (!currentViewId.value && records.length > 0) {
@@ -146,8 +237,12 @@ onMounted(async () => {
   const params = new URLSearchParams(window.location.search);
   const pUrl = params.get('url') || params.get('text');
   const pTitle = params.get('title');
+  const showGuide = params.get('show') === 'guide';
 
-  if (pUrl) {
+  if (showGuide) {
+    showGuideModal.value = true;
+    window.history.replaceState({}, document.title, window.location.pathname);
+  } else if (pUrl) {
     let finalUrl = pUrl;
     // Extract URL if it's embedded in text (common on Android Share)
     const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -184,11 +279,12 @@ onMounted(async () => {
       @toggle-edit-mode="toggleEditMode"
       @show-add-modal="showAddModal = true"
       @show-tools-modal="showToolsModal = true"
+      @show-guide-modal="showGuideModal = true"
       @logout="logout"
     />
 
   <ViewTabs 
-    v-if="currentView && tabPosition === 'top'"
+    v-if="(currentView || currentViewId === 'trash') && tabPosition === 'top'"
     :views="views"
     :current-view-id="currentViewId"
     :is-edit-mode="isEditMode"
@@ -199,8 +295,12 @@ onMounted(async () => {
   />
 
   <main class="l-main" :class="{ 'has-tabs-bottom': tabPosition === 'bottom' }">
+    <TrashView 
+      v-if="currentViewId === 'trash'"
+      :search-query="searchQuery"
+    />
     <GridView 
-      v-if="currentView" 
+      v-else-if="currentView" 
       ref="gridRef" 
       :is-edit-mode="isEditMode" 
       :current-view="currentView" 
@@ -210,7 +310,7 @@ onMounted(async () => {
     />
     
     <AddItemModal 
-      v-if="currentView"
+      v-if="currentView && currentViewId !== 'trash'"
       :show="showAddModal" 
       :current-view="currentView"
       :views="views"
@@ -235,10 +335,15 @@ onMounted(async () => {
       :show="showToolsModal"
       @close="showToolsModal = false"
     />
+
+    <GuideModal
+      :show="showGuideModal"
+      @close="showGuideModal = false"
+    />
   </main>
 
   <ViewTabs 
-    v-if="currentView && tabPosition === 'bottom'"
+    v-if="(currentView || currentViewId === 'trash') && tabPosition === 'bottom'"
     :views="views"
     :current-view-id="currentViewId"
     :is-edit-mode="isEditMode"

@@ -23,6 +23,28 @@ const password = ref('');
 const name = ref('');
 const error = ref('');
 const loading = ref(false);
+const isForgotPassword = ref(false);
+const resetSuccess = ref(false);
+
+async function handlePasswordReset() {
+  error.value = '';
+  resetSuccess.value = false;
+  
+  if (!email.value) {
+    error.value = 'Please enter your email address.';
+    return;
+  }
+  
+  loading.value = true;
+  try {
+    await pb.collection('users').requestPasswordReset(email.value);
+    resetSuccess.value = true;
+  } catch (err: any) {
+    error.value = err.message || 'Failed to send reset email.';
+  } finally {
+    loading.value = false;
+  }
+}
 
 async function handleSubmit() {
   error.value = '';
@@ -115,49 +137,81 @@ onMounted(async () => {
     </div>
 
     <div class="c-auth-card">
-      <h2 class="c-auth-card__title">{{ isLogin ? $t('auth.loginTitle') : $t('auth.signupTitle') }}</h2>
-      <form @submit.prevent="handleSubmit" class="c-auth-card__form">
-        <div v-if="!isLogin" class="c-auth-card__field">
-          <label>{{ $t('auth.displayName') }}</label>
-          <input v-model="name" type="text" :placeholder="$t('auth.yourName')" required />
+      <template v-if="isForgotPassword">
+        <h2 class="c-auth-card__title">{{ $t('auth.forgotPassword') }}</h2>
+        <p class="c-auth-card__desc">{{ $t('auth.resetDesc') }}</p>
+
+        <form @submit.prevent="handlePasswordReset" class="c-auth-card__form">
+          <div class="c-auth-card__field">
+            <label>{{ $t('auth.emailAddress') }}</label>
+            <input v-model="email" type="email" :placeholder="$t('auth.emailPlaceholder')" required />
+          </div>
+
+          <p v-if="error" class="c-auth-card__error">{{ error }}</p>
+          <p v-if="resetSuccess" class="c-auth-card__success">{{ $t('auth.resetEmailSent') }}</p>
+
+          <button type="submit" class="c-auth-card__button" :disabled="loading || resetSuccess">
+            {{ loading ? $t('auth.processing') : $t('auth.sendResetEmail') }}
+          </button>
+        </form>
+
+        <div class="c-auth-card__footer" style="margin-top: 24px;">
+          <button @click="isForgotPassword = false; resetSuccess = false; error = '';" class="c-auth-card__switch">
+            ← {{ $t('auth.backToLogin') }}
+          </button>
         </div>
+      </template>
 
-        <div class="c-auth-card__field">
-          <label>{{ $t('auth.emailAddress') }}</label>
-          <input v-model="email" type="email" :placeholder="$t('auth.emailPlaceholder')" required />
-        </div>
+      <template v-else>
+        <h2 class="c-auth-card__title">{{ isLogin ? $t('auth.loginTitle') : $t('auth.signupTitle') }}</h2>
+        <form @submit.prevent="handleSubmit" class="c-auth-card__form">
+          <div v-if="!isLogin" class="c-auth-card__field">
+            <label>{{ $t('auth.displayName') }}</label>
+            <input v-model="name" type="text" :placeholder="$t('auth.yourName')" required />
+          </div>
 
-        <div class="c-auth-card__field">
-          <label>{{ $t('auth.password') }}</label>
-          <input v-model="password" type="password" :placeholder="$t('auth.minPassword')" required minlength="8" />
-        </div>
+          <div class="c-auth-card__field">
+            <label>{{ $t('auth.emailAddress') }}</label>
+            <input v-model="email" type="email" :placeholder="$t('auth.emailPlaceholder')" required autocomplete="email" autocapitalize="none" />
+          </div>
 
-        <p v-if="error" class="c-auth-card__error">{{ error }}</p>
+          <div class="c-auth-card__field">
+            <label>{{ $t('auth.password') }}</label>
+            <input v-model="password" type="password" :placeholder="$t('auth.minPassword')" required minlength="8" />
+            <div v-if="isLogin" class="c-auth-card__forgot-container">
+              <button type="button" @click="isForgotPassword = true; error = '';" class="c-auth-card__forgot-link">
+                {{ $t('auth.forgotPassword') }}
+              </button>
+            </div>
+          </div>
 
-        <button type="submit" class="c-auth-card__button" :disabled="loading">
-          {{ loading ? $t('auth.processing') : (isLogin ? $t('auth.loginBtn') : $t('auth.signupBtn')) }}
-        </button>
-      </form>
+          <p v-if="error" class="c-auth-card__error">{{ error }}</p>
+
+          <button type="submit" class="c-auth-card__button" :disabled="loading">
+            {{ loading ? $t('auth.processing') : (isLogin ? $t('auth.loginBtn') : $t('auth.signupBtn')) }}
+          </button>
+        </form>
 
       <div class="c-auth-card__divider">
         <span>{{ $t('auth.or') }}</span>
       </div>
 
-      <button @click="handleGoogleLogin" class="c-auth-card__google-btn" :disabled="loading" type="button">
-        <svg class="c-auth-card__google-icon" viewBox="0 0 24 24">
-          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-        </svg>
-        {{ $t('auth.continueGoogle') }}
-      </button>
-
-      <div class="c-auth-card__footer">
-        <button @click="isLogin = !isLogin" class="c-auth-card__switch">
-          {{ isLogin ? $t('auth.switchToSignup') : $t('auth.switchToLogin') }}
+        <button @click="handleGoogleLogin" class="c-auth-card__google-btn" :disabled="loading" type="button">
+          <svg class="c-auth-card__google-icon" viewBox="0 0 24 24">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          {{ $t('auth.continueGoogle') }}
         </button>
-      </div>
+
+        <div class="c-auth-card__footer">
+          <button @click="isLogin = !isLogin; error = '';" class="c-auth-card__switch">
+            {{ isLogin ? $t('auth.switchToSignup') : $t('auth.switchToLogin') }}
+          </button>
+        </div>
+      </template>
     </div>
   </div>
 </template>
@@ -250,14 +304,51 @@ onMounted(async () => {
   box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1);
 }
 
-.c-auth-card__error {
-  color: var(--color-danger);
+.c-auth-card__error, .c-auth-card__success {
   font-size: 0.85rem;
   font-weight: 500;
   margin-bottom: 20px;
   padding: 10px;
-  background-color: rgba(220, 53, 69, 0.05);
   border-radius: 8px;
+}
+
+.c-auth-card__error {
+  color: var(--color-danger);
+  background-color: rgba(220, 53, 69, 0.05);
+}
+
+.c-auth-card__success {
+  color: #0f5132;
+  background-color: #d1e7dd;
+  border: 1px solid #badbcc;
+}
+
+.c-auth-card__desc {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.c-auth-card__forgot-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.c-auth-card__forgot-link {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.c-auth-card__forgot-link:hover {
+  text-decoration: underline;
 }
 
 .c-auth-card__button {

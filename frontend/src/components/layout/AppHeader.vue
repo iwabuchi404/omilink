@@ -17,6 +17,7 @@ const emit = defineEmits<{
   (e: 'toggleEditMode'): void;
   (e: 'showAddModal'): void;
   (e: 'showToolsModal'): void;
+  (e: 'showGuideModal'): void;
   (e: 'logout'): void;
   (e: 'update:searchQuery', value: string): void;
   (e: 'update:isHidden', value: boolean): void;
@@ -210,6 +211,9 @@ const themeIcon = computed(() => {
           <div class="l-header__dropdown-divider"></div>
           <button class="l-header__dropdown-item" @click="$emit('showToolsModal'); showUserMenu = false">
             <span>📦</span> {{ $t('header.tools') }}
+          </button>
+          <button class="l-header__dropdown-item" @click="$emit('showGuideModal'); showUserMenu = false">
+            <span>📖</span> {{ $t('header.guide') || '使い方ガイド' }}
           </button>
           <div class="l-header__dropdown-divider"></div>
           <button class="l-header__dropdown-item" @click="$emit('logout'); showUserMenu = false">

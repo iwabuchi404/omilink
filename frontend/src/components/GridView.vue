@@ -143,12 +143,11 @@ async function deleteItem(item: ViewItem) {
   if (!confirm(t('grid.confirmTrash', { title: item.title }))) return;
 
   try {
-    // Soft-delete the item
-    await pb.collection('items').update(item.itemId, {
+    // Soft-delete the item, but DO NOT delete the placement so it remembers where it was
+    await pb.collection('items').update(item.itemId, { 
       is_deleted: true,
       deleted_at: new Date().toISOString(),
     });
-    // Remove from local list immediately
     items.value = items.value.filter(i => i.id !== item.id);
   } catch (err) {
     console.error('Failed to move to trash:', err);
