@@ -40,7 +40,8 @@
     "addItemTitle": "アイテムを追加",
     "tabPosition": "タブの位置",
     "top": "上部",
-    "bottom": "下部"
+    "bottom": "下部",
+    "guide": "使い方ガイド"
   },
   "modal": {
     "newItem": "アイテム追加",
@@ -76,7 +77,8 @@
     "contentPlaceholder": "内容...",
     "viewSettings": "ビューの設定",
     "delete": "削除",
-    "save": "保存"
+    "save": "保存",
+    "close": "閉じる"
   },
   "grid": {
     "loading": "ブックマークを読み込み中...",
