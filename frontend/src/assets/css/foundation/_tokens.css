@@ -1,50 +1,87 @@
 :root {
   /* Global tokens */
   --grid-size: 100px;
-  --grid-gap: 10px;
+  --grid-gap: 12px;
   
-  /* Light Theme */
-  --color-bg-page: #f4f5f7;
-  --color-bg-surface: #ffffff;
-  --color-bg-modal: #ffffff;
-  --color-text-main: #213547;
-  --color-text-muted: #666666;
-  --color-border: #e5e7eb;
-  --color-primary: #1a73e8;
-  --color-primary-hover: #1557b0;
-  --color-danger: #dc3545;
-  --color-danger-hover: #bb2d3b;
+  /* Light Theme (Pattern 2: Classic & Warm) */
+  --color-bg-page: #f0ece6;      /* Gutter/Outer background */
+  --color-bg-surface: #fdfaf5;   /* Main content area (paper) */
+  --color-bg-modal: #fdfaf5;
   
+  /* Differentiation for Header/Tabs */
+  --color-bg-header: #3a2418;    /* Deep Brown Header */
+  --color-text-header: #fdfaf5;
+  --color-bg-tabs: #e8e0d4;      
+  
+  --color-text-main: #3a2418;
+  --color-text-muted: #8a7868;
+  --color-border: rgba(180,155,130,0.30); /* Darker grid base */
+  
+  --color-primary: #7a5040;
+  --color-primary-hover: #5d3c30;
+  --color-accent: #b05040;
+  --color-danger: #b05040;
+
   /* Card specific */
-  --color-card-bg: #ffffff;
-  --color-card-border: #eaeaea;
-  --color-memo-bg: #fef3c7;
-  --color-memo-border: #fde68a;
+  --color-card-bg: #fdfaf5;
+  --color-card-border: rgba(180,155,130,0.22);
+  --color-memo-bg: #fdfaf5;
+  --color-memo-border: rgba(180,155,130,0.22);
   
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  /* Neumorphism (Refined for smoothness) */
+  --neu-border-normal: 1px solid var(--color-card-border);
+  --neu-shadow-normal: 
+    2px 3px 6px rgba(80, 50, 30, 0.08),
+    5px 8px 18px rgba(80, 50, 30, 0.06),
+    -2px -2px 8px rgba(255, 255, 255, 0.85);
+  
+  --neu-border-drag: 1px solid var(--color-card-border);
+  --neu-shadow-drag: 
+    6px 10px 25px rgba(80, 50, 30, 0.12),
+    12px 20px 45px rgba(80, 50, 30, 0.08),
+    -4px -4px 15px rgba(255, 255, 255, 0.95);
+  
+  /* Neumorphism for TABS (Folder Style) */
+  --neu-tab-active: 4px 0 10px rgba(80, 50, 30, 0.06), -2px -2px 8px rgba(255, 255, 255, 0.7);
+  --neu-tab-inactive: inset 2px 2px 4px rgba(80, 50, 30, 0.08), inset -1px -1px 3px rgba(255, 255, 255, 0.4);
+  
+  /* Transitions */
+  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 [data-theme="dark"] {
-  --color-bg-page: #0f172a;
-  --color-bg-surface: #1e293b;
-  --color-bg-modal: #1e293b;
-  --color-text-main: #f8fafc;
-  --color-text-muted: #94a3b8;
-  --color-border: #334155;
-  --color-primary: #3b82f6;
-  --color-primary-hover: #60a5fa;
-  --color-danger: #ef4444;
-  --color-danger-hover: #f87171;
+  /* Pattern 2: Classic & Warm Dark */
+  --color-bg-page: #131109;
+  --color-bg-surface: #1e1c17;
+  --color-bg-modal: #1e1c17;
   
+  --color-bg-header: #131109;
+  --color-text-header: #e4dfd4;
+  --color-bg-tabs: #2e2a22;
+
+  --color-text-main: #e4dfd4;
+  --color-text-muted: #726860;
+  --color-border: rgba(255,230,180,0.15);
+
   /* Card specific */
-  --color-card-bg: #1e293b;
-  --color-card-border: #334155;
-  --color-memo-bg: #451a03;
-  --color-memo-border: #78350f;
+  --color-card-bg: #1e1c17;
+  --color-card-border: rgba(255,230,180,0.12);
+  --color-memo-bg: #1e1c17;
+  --color-memo-border: rgba(255,230,180,0.12);
   
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  --color-primary: #7a5040;
+  --color-primary-hover: #9c6754;
+  --color-accent: #b05040;
+  --color-danger: #b05040;
+  
+  /* Neumorphism (Refined for smoothness) */
+  --neu-border-normal: 1px solid var(--color-card-border);
+  --neu-shadow-normal: inset 4px 4px 12px rgba(0,0,0,0.5), inset -2px -2px 8px rgba(255,225,170,0.05);
+
+  --neu-border-drag: 1px solid var(--color-card-border);
+  --neu-shadow-drag: 10px 18px 40px rgba(0,0,0,0.7), -2px -3px 12px rgba(255,225,170,0.08);
+
+   /* Neumorphism for TABS (Folder Style) */
+  --neu-tab-active: 4px 0 12px rgba(0,0,0,0.4), -2px -2px 8px rgba(255,225,170,0.05);
+  --neu-tab-inactive: inset 3px 3px 6px rgba(0,0,0,0.5), inset -1px -1px 3px rgba(255,225,170,0.04);
 }

@@ -103,65 +103,82 @@ const close = () => {
 
 .c-guide__tabs {
   display: flex;
-  border-bottom: 2px solid var(--color-border);
-  margin-bottom: 20px;
+  gap: 6px;
+  margin-bottom: 24px;
+  background: var(--color-bg-page);
+  padding: 6px;
+  border-radius: 14px;
+  box-shadow: inset 1px 1px 3px rgba(0,0,0,0.06);
 }
 
 .c-guide__tab {
   flex: 1;
-  padding: 12px 0;
+  padding: 10px 12px;
   background: none;
   border: none;
-  border-bottom: 3px solid transparent;
+  border-radius: 10px;
   color: var(--color-text-muted);
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
-  font-size: 0.9rem;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.85rem;
+  letter-spacing: -0.01em;
 }
 
 .c-guide__tab:hover {
-  color: var(--color-primary);
-  background-color: var(--color-bg-page);
+  color: var(--color-text-main);
+  background-color: rgba(255,255,255,0.5);
 }
 
 .c-guide__tab.is-active {
-  color: var(--color-primary);
-  border-bottom-color: var(--color-primary);
+  color: var(--color-accent);
+  background: white;
+  box-shadow: 2px 3px 8px rgba(80, 50, 30, 0.08);
+}
+
+[data-theme="dark"] .c-guide__tab.is-active {
+  background: var(--color-bg-surface);
+  color: #fff;
+  box-shadow: 2px 3px 10px rgba(0,0,0,0.4);
 }
 
 .c-guide__content {
   min-height: 250px;
+  padding: 4px;
 }
 
 .c-guide__section h3 {
-  margin: 0 0 12px 0;
-  font-size: 1.2rem;
+  margin: 0 0 16px 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--color-text-main);
 }
 
 .c-guide__section p {
-  line-height: 1.6;
+  line-height: 1.7;
   color: var(--color-text-muted);
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  font-size: 0.95rem;
 }
 
 .c-guide__list {
   padding-left: 20px;
-  line-height: 1.6;
+  line-height: 1.7;
   color: var(--color-text-main);
 }
 
 .c-guide__list li {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .c-guide__install-box {
   background: var(--color-bg-page);
-  border: 1px dashed var(--color-border);
-  border-radius: 12px;
-  padding: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 28px;
   text-align: center;
-  margin-top: 20px;
+  margin-top: 24px;
+  box-shadow: inset 2px 2px 5px rgba(0,0,0,0.04);
 }
 
 .c-guide__install-btn {

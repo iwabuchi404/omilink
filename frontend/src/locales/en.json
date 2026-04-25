@@ -40,7 +40,8 @@
     "addItemTitle": "Add Item",
     "tabPosition": "Tab Position",
     "top": "Top",
-    "bottom": "Bottom"
+    "bottom": "Bottom",
+    "guide": "Guide"
   },
   "modal": {
     "newItem": "New Item",
@@ -76,7 +77,8 @@
     "contentPlaceholder": "Content...",
     "viewSettings": "View Settings",
     "delete": "Delete",
-    "save": "Save"
+    "save": "Save",
+    "close": "Close"
   },
   "grid": {
     "loading": "Loading your bookmarks...",
@@ -84,6 +86,7 @@
     "cardOptions": "Options",
     "editDetails": "Edit Details",
     "addToView": "Add to another view",
+    "moveToView": "Move to other view",
     "moveToTrash": "Move to Trash",
     "confirmTrash": "Move \"{title}\" to Trash?"
   },

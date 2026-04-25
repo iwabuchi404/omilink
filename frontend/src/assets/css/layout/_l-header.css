@@ -1,11 +1,11 @@
 .l-header {
   height: 60px;
   background-color: var(--color-bg-surface);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--neu-border-normal);
   display: flex;
   align-items: center;
   padding: 0 20px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 30px rgb(221 203 203 / 30%), 0 4px 8px rgb(41 37 37 / 20%), inset 1px 1px 0 rgb(255 244 244 / 5%);
   z-index: 1100;
 }
 

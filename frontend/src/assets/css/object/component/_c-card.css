@@ -3,7 +3,6 @@
   background-color: var(--color-card-bg);
   border-radius: 12px;
   box-shadow: var(--shadow-sm);
-  padding: 12px;
   border: 1px solid var(--color-border);
   cursor: grab;
   user-select: none;
@@ -19,16 +18,22 @@
 /* Interaction classes */
 .is-dragging {
   cursor: grabbing !important;
-  box-shadow: 0 20px 30px rgba(0,0,0,0.15) !important; 
-  /* Visual offset: Move 15px up and slightly to the right */
-  /* We add this to the JS-controlled translate in GridView.vue if possible, 
-     but CSS transform will overwrite it. We need to handle this in JS. */
   z-index: 1000 !important;
-  transition: box-shadow 0.2s ease !important; 
+}
+
+.is-dragging .c-card {
+  box-shadow: var(--neu-shadow-drag) !important;
+  border: var(--neu-border-drag) !important;
+  transform: scale(1.04);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.c-card {
+  border-radius: 9px !important;
 }
 
 .is-resizing {
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
   z-index: 999 !important;
   transition: none !important;
 }

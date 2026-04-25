@@ -168,19 +168,32 @@ function close() {
 
 .c-modal__field input, .c-modal__field textarea {
   width: 100%;
-  padding: 12px 16px;
+  padding: 14px 18px;
   background-color: var(--color-bg-page);
-  border: 1.5px solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   font-size: 1rem;
   color: var(--color-text-main);
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
+  /* Sunken inset effect */
+  box-shadow: 
+    inset 2px 2px 5px rgba(0,0,0,0.06),
+    inset -2px -2px 5px rgba(255,255,255,0.7);
 }
 
 .c-modal__field input:focus, .c-modal__field textarea:focus {
   outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1);
+  border-color: var(--color-accent);
+  background-color: var(--color-bg-surface);
+  box-shadow: 
+    inset 1px 1px 3px rgba(0,0,0,0.1),
+    0 0 0 3px rgba(176, 80, 64, 0.1);
+}
+
+[data-theme="dark"] .c-modal__field input, [data-theme="dark"] .c-modal__field textarea {
+  box-shadow: 
+    inset 2px 2px 5px rgba(0,0,0,0.4),
+    inset -1px -1px 2px rgba(255,255,170,0.02);
 }
 
 .c-modal__field textarea {

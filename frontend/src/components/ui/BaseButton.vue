@@ -29,53 +29,83 @@ defineEmits(['click'])
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  padding: 10px 24px;
-  border-radius: 10px;
+  padding: 12px 28px;
+  border-radius: 12px;
   font-weight: 700;
   font-size: 0.95rem;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   letter-spacing: -0.01em;
   white-space: nowrap;
 }
 
+.c-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
 .c-btn:active:not(:disabled) {
-  transform: scale(0.97);
+  transform: translateY(0.5px);
+  transition-duration: 0.1s;
 }
 
 .c-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  filter: grayscale(0.5);
 }
 
 .c-btn--primary {
-  background: var(--color-primary);
+  background: linear-gradient(135deg, #c05848, var(--color-accent));
   color: white;
-  box-shadow: 0 2px 4px rgba(26, 115, 232, 0.2);
+  border: none;
+  box-shadow: 
+    inset 1px 1.5px 0 rgba(255, 255, 255, 0.22),
+    0 4px 12px rgba(176, 80, 64, 0.25);
 }
+
 .c-btn--primary:not(:disabled):hover {
-  background: var(--color-primary-hover);
-  box-shadow: 0 4px 8px rgba(26, 115, 232, 0.3);
+  filter: brightness(1.1);
+  box-shadow: 
+    inset 1px 1.5px 0 rgba(255, 255, 255, 0.25),
+    0 8px 20px rgba(176, 80, 64, 0.35);
+}
+
+.c-btn--primary:not(:disabled):active {
+  box-shadow: inset 2px 3px 6px rgba(0,0,0,0.3);
 }
 
 .c-btn--secondary {
-  background: var(--color-bg-page);
+  background: linear-gradient(145deg, var(--color-bg-surface), var(--color-bg-page));
   color: var(--color-text-main);
-  border-color: var(--color-border);
+  border: 1px solid var(--color-border);
+  box-shadow: 
+    inset 1px 1px 0 rgba(255, 255, 255, 0.8),
+    2px 3px 6px rgba(80, 50, 30, 0.05);
 }
+
 .c-btn--secondary:not(:disabled):hover {
   background: var(--color-bg-surface);
   border-color: var(--color-text-muted);
+  box-shadow: 
+    inset 1px 1px 0 rgba(255, 255, 255, 0.9),
+    4px 6px 12px rgba(80, 50, 30, 0.08);
+}
+
+.c-btn--secondary:not(:disabled):active {
+  background: var(--color-bg-page);
+  box-shadow: inset 1px 1px 4px rgba(80, 50, 30, 0.12);
 }
 
 .c-btn--danger {
-  background: var(--color-danger);
-  color: white;
+  background: #fff;
+  color: var(--color-danger);
+  border: 1px solid rgba(176, 80, 64, 0.2);
 }
 .c-btn--danger:not(:disabled):hover {
-  background: var(--color-danger-hover);
+  background: var(--color-danger);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(176, 80, 64, 0.25);
 }
 
 .c-btn__loader {

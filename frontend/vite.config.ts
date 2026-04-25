@@ -12,13 +12,13 @@ export default defineConfig({
     }),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
+      includeAssets: ['logo.svg', 'pwa-192x192.png', 'apple-touch-icon.png'],
       manifest: {
         name: 'OmiLink',
         short_name: 'OmiLink',
         description: 'Personal Dashboard for Bookmarks and Memos',
-        theme_color: '#1a73e8',
-        background_color: '#f4f5f7',
+        theme_color: '#B05040',
+        background_color: '#FDFAF5',
         display: 'standalone',
         share_target: {
           action: '/',

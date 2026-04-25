@@ -7,6 +7,7 @@ import BaseModal from '../ui/BaseModal.vue';
 import BaseButton from '../ui/BaseButton.vue';
 
 interface ViewItem {
+  id: string; // Placement ID
   itemId: string;
   title: string;
   type: 'bookmark' | 'memo';
@@ -17,6 +18,7 @@ const props = defineProps<{
   item: ViewItem | null;
   views: ViewsResponse[];
   currentViewId: string;
+  mode: 'add' | 'move';
 }>();
 
 const emit = defineEmits(['close', 'success']);
@@ -81,6 +83,11 @@ async function handleSubmit() {
       height: props.item.type === 'bookmark' ? 2 : 2
     });
 
+    // 4. If move mode, delete original placement
+    if (props.mode === 'move') {
+      await pb.collection('placements').delete(props.item.id);
+    }
+
     emit('success');
     close();
   } catch (err: any) {
@@ -99,8 +106,13 @@ function close() {
 <template>
   <BaseModal :show="show && !!item" @close="close">
     <template #header>
-      <h3 class="c-modal__title">Add to Another View</h3>
-      <p v-if="item" class="c-modal__subtitle">Select a view to place "{{ item.title }}" in.</p>
+      <h3 class="c-modal__title">{{ mode === 'add' ? $t('grid.addToView') : $t('grid.moveToView') }}</h3>
+      <p v-if="item" class="c-modal__subtitle">
+        {{ mode === 'add' 
+           ? 'Select a view to place "' + item.title + '" in.' 
+           : 'Select a view to move "' + item.title + '" to.' 
+        }}
+      </p>
     </template>
       
     <form @submit.prevent="handleSubmit" class="c-modal__form">
@@ -127,7 +139,7 @@ function close() {
           :disabled="availableViews.length === 0"
           @click="handleSubmit"
         >
-          {{ loading ? 'Adding...' : 'Add to View' }}
+          {{ loading ? '...' : (mode === 'add' ? $t('grid.addToView') : $t('grid.moveToView')) }}
         </BaseButton>
       </div>
     </form>
@@ -162,10 +174,24 @@ function close() {
 
 .c-modal__field select {
   width: 100%;
-  padding: 12px;
-  border: 1.5px solid #eee;
-  border-radius: 10px;
+  padding: 14px 18px;
+  background-color: var(--color-bg-page);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
   font-size: 1rem;
+  color: var(--color-text-main);
+  transition: all 0.25s ease;
+  box-shadow: 
+    inset 2px 2px 5px rgba(0,0,0,0.06),
+    inset -2px -2px 5px rgba(255,255,255,0.7);
+}
+
+.c-modal__field select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 
+    inset 1px 1px 3px rgba(0,0,0,0.1),
+    0 0 0 3px rgba(176, 80, 64, 0.1);
 }
 
 .c-modal__hint {

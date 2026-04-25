@@ -29,6 +29,7 @@ const props = defineProps<{
 defineEmits<{
   (e: 'delete'): void;
   (e: 'addToView'): void;
+  (e: 'moveToView'): void;
   (e: 'edit'): void;
   (e: 'view-memo'): void;
 }>();
@@ -127,13 +128,20 @@ const displayTitle = computed(() => {
         </button>
         <div class="c-card-popover__divider"></div>
         <button
-          v-if="item.type === 'bookmark'"
           class="c-card-popover__item"
           :popovertarget="popoverId"
           popovertargetaction="hide"
           @click="$emit('addToView')"
         >
           <span>➕</span> {{ $t('grid.addToView') }}
+        </button>
+        <button
+          class="c-card-popover__item"
+          :popovertarget="popoverId"
+          popovertargetaction="hide"
+          @click="$emit('moveToView')"
+        >
+          <span>📦</span> {{ $t('grid.moveToView') }}
         </button>
         <div class="c-card-popover__divider"></div>
         <button
@@ -153,18 +161,18 @@ const displayTitle = computed(() => {
 /* ===================== Card Base ===================== */
 .c-card {
   position: relative;
-  border-radius: 12px;
-  box-shadow: var(--shadow-sm);
+  border-radius: 9px;
+  box-shadow: var(--neu-shadow-normal);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   background-color: var(--color-card-bg);
   width: 100%;
   height: 100%;
-  border: 1px solid var(--color-border);
+  border: var(--neu-border-normal);
 }
 
 .c-card:hover {
-  box-shadow: var(--shadow-md);
   border-color: var(--color-primary);
+  /* The normal neumorphism shadow is already present, simply changing border color is enough */
 }
 
 .c-card.is-bookmark {
@@ -222,7 +230,7 @@ const displayTitle = computed(() => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding: 12px;
+  padding: 18px;
   gap: 8px;
 }
 
@@ -233,7 +241,7 @@ const displayTitle = computed(() => {
 }
 
 .is-tall .c-card__inner {
-  padding: 12px 8px;
+  padding: 18px 8px;
   text-align: center;
   justify-content: center;
 }
@@ -279,13 +287,19 @@ const displayTitle = computed(() => {
 }
 
 .c-card__favicon {
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 16px;
+  background-color: #e8e0d4; /* Color from reference */
+}
+
+[data-theme="dark"] .c-card__favicon {
+  background-color: #131109; /* Color from reference */
 }
 
 .is-tall .c-card__favicon {
@@ -302,8 +316,8 @@ const displayTitle = computed(() => {
 
 .c-card__title {
   margin: 0;
-  font-size: 0.9rem;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 500;
   line-height: 1.4;
   color: var(--color-text-main);
   display: -webkit-box;
@@ -333,7 +347,7 @@ const displayTitle = computed(() => {
 
 .c-card__content {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 10px;
   color: var(--color-text-muted);
   line-height: 1.5;
   display: -webkit-box;
@@ -359,7 +373,7 @@ const displayTitle = computed(() => {
 
 .c-card__content-url {
   margin: 0;
-  font-size: 0.7rem;
+  font-size: 10px;
   color: var(--color-primary);
   white-space: nowrap;
   overflow: hidden;

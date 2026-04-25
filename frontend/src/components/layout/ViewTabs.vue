@@ -124,20 +124,28 @@ watch(() => props.isEditMode, (newVal) => {
             ⚙️
           </button>
         </button>
-      </TransitionGroup>
 
-      <button
-        class="c-view-tabs__tab is-system-tab"
-        :class="{ 'is-active': currentViewId === 'trash' }"
-        @click="$emit('update:currentViewId', 'trash')"
-        :draggable="false"
-      >
-        <span class="c-view-tabs__tab-name">🗑️ {{ $t('trash.title') || 'Trash' }}</span>
-      </button>
+        <button
+          key="trash"
+          class="c-view-tabs__tab is-system-tab"
+          :class="{ 
+            'is-active': currentViewId === 'trash'
+          }"
+          data-id="trash"
+          @click="$emit('update:currentViewId', 'trash')"
+        >
+          <span class="c-view-tabs__tab-name">🗑️ {{ $t('trash.title') || 'Trash' }}</span>
+        </button>
+      </TransitionGroup>
 
       <div class="c-view-tabs__spacer"></div>
 
-      <button class="c-view-tabs__add-btn" @click="$emit('addView')" :title="$t('modal.newView')">
+      <button 
+        v-if="isEditMode"
+        class="c-view-tabs__add-btn" 
+        @click="$emit('addView')" 
+        :title="$t('modal.newView')"
+      >
         <span>＋</span>
       </button>
     </div>
@@ -146,25 +154,41 @@ watch(() => props.isEditMode, (newVal) => {
 
 <style scoped>
 .l-sub-header {
+  position: relative; /* For absolute divider */
   flex-shrink: 0;
-  background-color: var(--color-bg-surface);
-  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-bg-tabs);
   padding: 0 24px;
   transition: all 0.3s ease;
   z-index: 100;
+  box-shadow: inset 0 2px 6px rgba(122, 80, 64, 0.05); /* Tray inset shadow */
+}
+
+/* Common tab area divider */
+.l-sub-header::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: var(--color-border);
+  z-index: 1;
 }
 
 .l-sub-header.is-bottom {
   border-bottom: none;
-  border-top: 1px solid var(--color-border);
-  box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-  padding-bottom: calc(env(safe-area-inset-bottom, 0) + 12px); /* Add extra safety padding */
+  padding-bottom: calc(env(safe-area-inset-bottom, 0) + 0px);
+}
+
+.l-sub-header.is-bottom::after {
+  bottom: auto;
+  top: 0;
 }
 
 .c-view-tabs {
   display: flex;
-  align-items: center;
-  height: 48px;
+  align-items: flex-end; /* Align tabs to bottom for folder look */
+  height: 52px;
 }
 
 .c-view-tabs__inner {
@@ -172,7 +196,7 @@ watch(() => props.isEditMode, (newVal) => {
   gap: 4px;
   overflow-x: auto;
   scrollbar-width: none;
-  align-items: center;
+  align-items: flex-end; /* Align to bottom for folder look */
   height: 100%;
 }
 
@@ -181,16 +205,18 @@ watch(() => props.isEditMode, (newVal) => {
 }
 
 .c-view-tabs__tab {
-  background: none;
-  border: none;
-  padding: 0 16px;
-  height: 100%;
+  background: var(--color-bg-tabs);
+  border: 1px solid rgb(229 217 217 / 30%);
+  border-bottom: none;
+  padding: 0 18px;
+  height: 38px;
   cursor: pointer;
   color: var(--color-text-muted);
   font-weight: 600;
-  font-size: 0.9rem;
-  border-bottom: 3px solid transparent;
-  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  font-size: 0.85rem;
+  border-radius: 8px 8px 0 0; /* Folder Tab Shape */
+  box-shadow: var(--neu-tab-inactive);
+  transition: all 0.25s ease;
   white-space: nowrap;
   display: flex;
   align-items: center;
@@ -198,11 +224,14 @@ watch(() => props.isEditMode, (newVal) => {
   letter-spacing: -0.01em;
   user-select: none;
   position: relative;
+  margin: 0 1px;
+  z-index: 0;
 }
 
 .c-view-tabs__tab.is-sortable {
+  padding-left: 8px;
+  padding-right: 4px;
   cursor: grab;
-  padding-left: 10px;
   touch-action: pan-x; /* Allow horizontal scrolling on the tab itself */
 }
 
@@ -213,32 +242,48 @@ watch(() => props.isEditMode, (newVal) => {
 
 .c-view-tabs__tab:hover {
   color: var(--color-text-main);
-  background-color: var(--color-bg-page);
+  background-color: var(--color-bg-surface);
 }
 
 .c-view-tabs__tab.is-active {
-  color: var(--color-primary);
+  color: var(--color-accent);
+  height: 44px; /* Sticks out more */
+  background: var(--color-bg-surface); /* Matches content area below */
+  box-shadow: var(--neu-tab-active);
+  border: 1px solid var(--color-card-border);
+  border-bottom: 4px solid var(--color-accent); /* Prominent accent border */
+  margin-bottom: -1px;
+  z-index: 5;
+}
+
+[data-theme="dark"] .c-view-tabs__tab.is-active {
+  background: var(--color-bg-surface);
+  border-bottom: 4px solid var(--color-accent);
+}
+
+/* Ensure Trash (system tab) also has the same behavior */
+.c-view-tabs__tab.is-system-tab {
+  opacity: 1; /* Match others */
+  margin-left: 8px;
+}
+
+.c-view-tabs__tab.is-system-tab.is-active {
+  background: var(--color-bg-surface);
+  box-shadow: var(--neu-tab-active);
+  border-bottom: 4px solid var(--color-accent);
+  margin-bottom: -1px;
 }
 
 .c-view-tabs__tab.is-active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background-color: var(--color-primary);
-  border-radius: 3px 3px 0 0;
+  display: none;
 }
 
 .l-sub-header.is-bottom .c-view-tabs__tab.is-active::after {
-  top: 0;
-  bottom: auto;
-  border-radius: 0 0 3px 3px;
+  display: none;
 }
 
 .c-view-tabs__tab.is-system-tab {
-  opacity: 0.8;
+  opacity: 1;
   margin-left: 12px;
 }
 .c-view-tabs__tab.is-system-tab:hover {
@@ -302,24 +347,31 @@ watch(() => props.isEditMode, (newVal) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 38px;
+  height: 38px;
   margin-left: 12px;
-  background: var(--color-bg-page);
+  background-color: var(--color-bg-tabs);
   border: 1px dashed var(--color-border);
-  border-radius: 8px;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0; /* Folder shape */
   cursor: pointer;
   color: var(--color-text-muted);
-  font-size: 1rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
+  font-size: 1.2rem;
+  font-weight: 300;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
+  box-shadow: var(--neu-tab-inactive);
+  margin-bottom: 0;
+  align-self: flex-end; /* Align with other tabs */
 }
 
 .c-view-tabs__add-btn:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
   background-color: var(--color-bg-surface);
-  box-shadow: var(--shadow-sm);
+  color: var(--color-accent);
+  border-style: solid;
+  border-color: var(--color-card-border);
+  border-bottom: 4px solid var(--color-accent);
+  height: 44px; /* Matches active tab height */
+  box-shadow: var(--neu-tab-active);
 }
 </style>

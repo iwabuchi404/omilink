@@ -86,6 +86,7 @@
     "cardOptions": "オプション",
     "editDetails": "詳細を編集",
     "addToView": "他のビューに追加",
+    "moveToView": "他のビューに移動",
     "moveToTrash": "ゴミ箱へ移動",
     "confirmTrash": "「{title}」をゴミ箱へ移動しますか？"
   },

@@ -295,19 +295,23 @@ onMounted(async () => {
   />
 
   <main class="l-main" :class="{ 'has-tabs-bottom': tabPosition === 'bottom' }">
-    <TrashView 
-      v-if="currentViewId === 'trash'"
-      :search-query="searchQuery"
-    />
-    <GridView 
-      v-else-if="currentView" 
-      ref="gridRef" 
-      :is-edit-mode="isEditMode" 
-      :current-view="currentView" 
-      :views="views"
-      :search-query="searchQuery"
-      @scroll="headerRef?.handleScroll($event)"
-    />
+    <Transition name="fade" mode="out-in">
+      <div :key="currentViewId || 'null'" class="l-main__content">
+        <TrashView 
+          v-if="currentViewId === 'trash'"
+          :search-query="searchQuery"
+        />
+        <GridView 
+          v-else-if="currentView" 
+          ref="gridRef" 
+          :is-edit-mode="isEditMode" 
+          :current-view="currentView" 
+          :views="views"
+          :search-query="searchQuery"
+          @scroll="headerRef?.handleScroll($event)"
+        />
+      </div>
+    </Transition>
     
     <AddItemModal 
       v-if="currentView && currentViewId !== 'trash'"
@@ -379,4 +383,20 @@ onMounted(async () => {
 }
 
 /* No more root translate, we collapse the header itself */
+
+/* Fade Transition */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s cubic-bezier(0.3, 0, 0.2, 1);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.l-main__content {
+  width: 100%;
+  height: 100%;
+}
 </style>

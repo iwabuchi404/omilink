@@ -33,6 +33,7 @@ const addingItem = ref<ViewItem | null>(null);
 const showEditModal = ref(false);
 const showMemoModal = ref(false);
 const showAddToViewModal = ref(false);
+const modalMode = ref<'add' | 'move'>('add');
 
 function openEditModal(item: ViewItem) {
   editingItem.value = item;
@@ -44,8 +45,9 @@ function openMemoView(item: ViewItem) {
   showMemoModal.value = true;
 }
 
-function openAddToViewModal(item: ViewItem) {
+function openAddToViewModal(item: ViewItem, mode: 'add' | 'move' = 'add') {
   addingItem.value = item;
+  modalMode.value = mode;
   showAddToViewModal.value = true;
 }
 
@@ -229,7 +231,8 @@ onUnmounted(() => {
           :is-filtered="item.isFiltered"
           @remove="removeItem(item)" 
           @delete="deleteItem(item)"
-          @add-to-view="openAddToViewModal(item)"
+          @add-to-view="openAddToViewModal(item, 'add')"
+          @move-to-view="openAddToViewModal(item, 'move')"
           @edit="openEditModal(item)"
           @view-memo="openMemoView(item)"
         />
@@ -274,11 +277,12 @@ onUnmounted(() => {
     />
 
     <!-- Add To View Modal -->
-    <AddToViewModal
+    <AddToViewModal 
       :show="showAddToViewModal"
       :item="addingItem"
       :views="views"
       :current-view-id="currentView.id"
+      :mode="modalMode"
       @close="showAddToViewModal = false"
       @success="fetchItems"
     />
@@ -312,15 +316,43 @@ onUnmounted(() => {
 .p-grid__container {
   position: relative;
   background-color: var(--color-bg-surface);
-  background-image: 
-    linear-gradient(to right, var(--color-border) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--color-border) 1px, transparent 1px);
-  background-size: var(--grid-size, 100px) var(--grid-size, 100px);
   border: 1px solid var(--color-border);
-  border-radius: 12px;
-  box-shadow: var(--shadow-md);
+  border-radius: 9px;
+  box-shadow: none;
   transition: all 0.3s ease;
+  overflow: visible;
 }
+
+/* Vertical dashed grid lines */
+.p-grid__container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(to bottom, var(--color-border) 0, var(--color-border) 3px, transparent 3px, transparent 10px);
+  background-size: 1.5px 100%;
+  background-repeat: repeat;
+  mask-image: linear-gradient(to right, black 1.5px, transparent 1.5px);
+  mask-size: var(--grid-size) 100%;
+  opacity: 0.85;
+  z-index: 0; /* Behind children */
+}
+
+/* Horizontal dashed grid lines */
+.p-grid__container::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(to right, var(--color-border) 0, var(--color-border) 3px, transparent 3px, transparent 10px);
+  background-size: 100% 1.5px;
+  background-repeat: repeat;
+  mask-image: linear-gradient(to bottom, black 1.5px, transparent 1.5px);
+  mask-size: 100% var(--grid-size);
+  opacity: 0.85;
+  z-index: 0; /* Behind children */
+}
+
 
 .is-edit-mode .p-grid__container {
   outline: 2px solid var(--color-primary);
@@ -339,6 +371,7 @@ onUnmounted(() => {
   left: 0;
   border-radius: 12px;
   transition: opacity 0.3s ease, filter 0.3s ease;
+  z-index: 5; /* Above grid lines */
 }
 
 .c-grid-container.is-edit-mode .c-card-wrapper {
