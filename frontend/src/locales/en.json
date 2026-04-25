@@ -41,7 +41,11 @@
     "tabPosition": "Tab Position",
     "top": "Top",
     "bottom": "Bottom",
-    "guide": "Guide"
+    "lightMode": "Light",
+    "darkMode": "Dark",
+    "installApp": "Install App",
+    "installIos": "Install on iPhone",
+    "guide": "User Guide"
   },
   "modal": {
     "newItem": "New Item",

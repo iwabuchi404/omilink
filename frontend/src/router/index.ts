@@ -20,15 +20,13 @@ const router = createRouter({
 })
 
 // Navigation Guard
-router.beforeEach((to, _from, next) => {
+router.beforeEach((to) => {
   const isAuthenticated = pb.authStore.isValid
 
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next({ name: 'login' })
+    return { name: 'login' }
   } else if (to.meta.requiresGuest && isAuthenticated) {
-    next({ name: 'dashboard' })
-  } else {
-    next()
+    return { name: 'dashboard' }
   }
 })
 

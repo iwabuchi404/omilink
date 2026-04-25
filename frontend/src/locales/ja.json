@@ -41,6 +41,10 @@
     "tabPosition": "タブの位置",
     "top": "上部",
     "bottom": "下部",
+    "lightMode": "ライト",
+    "darkMode": "ダーク",
+    "installApp": "アプリをインストール",
+    "installIos": "iPhoneにインストール",
     "guide": "使い方ガイド"
   },
   "modal": {

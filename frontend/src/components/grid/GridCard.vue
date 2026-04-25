@@ -70,9 +70,9 @@ const displayTitle = computed(() => {
       @mousedown.stop="(!isEditMode && item.type === 'bookmark') ? null : $event.preventDefault()"
       @click="!isEditMode && item.type === 'memo' ? $emit('view-memo') : null"
     >
-      <!-- OGP Image (bookmark only, 4 slots or more) -->
+      <!-- OGP Image (bookmark only, large enough card) -->
       <div 
-        v-if="item.type === 'bookmark' && item.og_image_url && item.w * item.h >= 4" 
+        v-if="item.type === 'bookmark' && item.og_image_url && item.h >= 2 && item.w * item.h >= 4" 
         class="c-card__og-image" 
         :style="{ backgroundImage: `url('${item.og_image_url}')` }"
       ></div>
@@ -215,8 +215,7 @@ const displayTitle = computed(() => {
 /* ===================== OGP Image ===================== */
 .c-card__og-image {
   width: 100%;
-  height: 50%;
-  min-height: 80px;
+  height: 60%;
   background-size: cover;
   background-position: center;
   background-color: var(--color-bg-page);
@@ -230,8 +229,9 @@ const displayTitle = computed(() => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding: 18px;
+  padding: 14px;
   gap: 8px;
+  min-height: 0;
 }
 
 .is-tiny .c-card__inner {

@@ -130,13 +130,18 @@ onMounted(async () => {
 <template>
   <div class="c-auth-page">
     <div class="c-auth-header">
-      <button class="l-header__btn c-auth-lang-btn" @click="toggleLanguage" title="Change Language">
+      <button class="c-auth-lang-btn" @click="toggleLanguage" title="Change Language">
         <span class="l-header__btn-icon">🌐</span>
         <span class="l-header__btn-text"> {{ currentLanguage }}</span>
       </button>
     </div>
 
     <div class="c-auth-card">
+      <div class="c-auth-card__brand">
+        <img src="/logo.svg" alt="OmiLink" class="c-auth-logo" />
+        <h1 class="c-auth-title">OmiLink</h1>
+      </div>
+
       <template v-if="isForgotPassword">
         <h2 class="c-auth-card__title">{{ $t('auth.forgotPassword') }}</h2>
         <p class="c-auth-card__desc">{{ $t('auth.resetDesc') }}</p>
@@ -239,31 +244,72 @@ onMounted(async () => {
 .c-auth-lang-btn {
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border);
-  padding: 8px 16px;
-  border-radius: 10px;
+  padding: 10px 20px;
+  border-radius: 14px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-weight: 700;
   color: var(--color-text-main);
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s ease;
+  box-shadow: 
+    inset 1px 1px 0 rgba(255,255,255,0.8),
+    2px 3px 5px rgba(0,0,0,0.05);
+  transition: all 0.25s ease;
 }
 
 .c-auth-lang-btn:hover {
-  background-color: var(--color-bg-page);
-  border-color: var(--color-text-muted);
+  background-color: white;
+  transform: translateY(-1px);
+  box-shadow: 4px 6px 12px rgba(80, 50, 30, 0.08);
+}
+
+.c-auth-lang-btn:active {
+  transform: translateY(0);
+  box-shadow: inset 2px 2px 5px rgba(0,0,0,0.06);
 }
 
 .c-auth-card {
   width: 100%;
-  max-width: 420px;
-  padding: 48px;
+  max-width: 440px;
+  padding: 56px 48px;
   background: var(--color-bg-modal);
-  border-radius: 20px;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  /* Premium multi-layered shadow */
+  box-shadow: 
+    0 10px 40px rgba(0,0,0,0.1),
+    0 20px 80px rgba(0,0,0,0.05),
+    inset 1.5px 1.5px 0 rgba(255,255,255,0.8);
+  border: 1px solid var(--color-card-border);
+  position: relative;
+}
+
+[data-theme="dark"] .c-auth-card {
+  box-shadow: 
+    0 20px 50px rgba(0,0,0,0.4),
+    inset 1px 1px 1px rgba(255,255,170,0.02);
+}
+
+.c-auth-card__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.c-auth-logo {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 4px 10px rgba(176, 80, 64, 0.2));
+}
+
+.c-auth-title {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--color-text-main);
+  margin: 0;
 }
 
 .c-auth-card__title {
@@ -289,19 +335,32 @@ onMounted(async () => {
 
 .c-auth-card__field input {
   width: 100%;
-  padding: 12px 16px;
+  padding: 14px 18px;
   background-color: var(--color-bg-page);
   border: 1px solid var(--color-border);
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 1rem;
   color: var(--color-text-main);
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
+  /* Sunken inset effect */
+  box-shadow: 
+    inset 2px 2px 5px rgba(0,0,0,0.06),
+    inset -2px -2px 5px rgba(255,255,255,0.7);
 }
 
 .c-auth-card__field input:focus {
-  border-color: var(--color-primary);
+  border-color: var(--color-accent);
   outline: none;
-  box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1);
+  background-color: var(--color-bg-surface);
+  box-shadow: 
+    inset 1px 1px 3px rgba(0,0,0,0.1),
+    0 0 0 3px rgba(176, 80, 64, 0.1);
+}
+
+[data-theme="dark"] .c-auth-card__field input {
+  box-shadow: 
+    inset 2px 2px 5px rgba(0,0,0,0.4),
+    inset -1px -1px 2px rgba(255,255,170,0.02);
 }
 
 .c-auth-card__error, .c-auth-card__success {
@@ -353,26 +412,30 @@ onMounted(async () => {
 
 .c-auth-card__button {
   width: 100%;
-  padding: 14px;
-  background: var(--color-primary);
+  padding: 16px;
+  background: linear-gradient(135deg, #c05848, var(--color-accent));
   color: white;
   border: none;
-  border-radius: 10px;
-  font-size: 1.05rem;
-  font-weight: 700;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 800;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 6px rgba(26, 115, 232, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    inset 1px 1.5px 0 rgba(255, 255, 255, 0.2),
+    0 6px 15px rgba(176, 80, 64, 0.25);
+  letter-spacing: -0.01em;
 }
 
 .c-auth-card__button:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-  box-shadow: 0 6px 12px rgba(26, 115, 232, 0.3);
-  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 10px 25px rgba(176, 80, 64, 0.35);
+  transform: translateY(-2px);
 }
 
 .c-auth-card__button:active:not(:disabled) {
-  transform: translateY(0);
+  transform: translateY(0.5px);
+  box-shadow: inset 2px 3px 6px rgba(0,0,0,0.2);
 }
 
 .c-auth-card__button:disabled {
@@ -410,24 +473,28 @@ onMounted(async () => {
 
 .c-auth-card__google-btn {
   width: 100%;
-  padding: 12px;
-  background: var(--color-bg-surface);
+  padding: 14px;
+  background: linear-gradient(145deg, var(--color-bg-surface), var(--color-bg-page));
   color: var(--color-text-main);
   border: 1px solid var(--color-border);
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  transition: all 0.2s ease;
+  gap: 14px;
+  transition: all 0.25s ease;
+  box-shadow: 
+    inset 1px 1px 0 rgba(255,255,255,0.8),
+    2px 4px 8px rgba(0,0,0,0.05);
 }
 
-.c-auth-card__google-btn:hover {
-  background: var(--color-bg-page);
-  border-color: var(--color-text-muted);
+.c-auth-card__google-btn:hover:not(:disabled) {
+  background: var(--color-bg-surface);
+  transform: translateY(-1px);
+  box-shadow: 4px 8px 16px rgba(80, 50, 30, 0.08);
 }
 
 .c-auth-card__google-icon {
