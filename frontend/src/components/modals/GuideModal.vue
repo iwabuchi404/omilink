@@ -10,6 +10,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void;
+  (e: 'open-tools'): void;
 }>();
 
 const currentTab = ref(1);
@@ -25,13 +26,13 @@ const close = () => {
     <div class="c-guide">
       <div class="c-guide__tabs">
         <button class="c-guide__tab" :class="{ 'is-active': currentTab === 1 }" @click="currentTab = 1">
-          📝 {{ $t('guide.tab1') || 'Basic Usage' }}
+          {{ $t('guide.tab1') }}
         </button>
         <button class="c-guide__tab" :class="{ 'is-active': currentTab === 2 }" @click="currentTab = 2">
-          ➕ {{ $t('guide.tab2') || 'Add Items' }}
+          {{ $t('guide.tab2') }}
         </button>
         <button class="c-guide__tab" :class="{ 'is-active': currentTab === 3 }" @click="currentTab = 3">
-          📱 {{ $t('guide.tab3') || 'App Install' }}
+          {{ $t('guide.tab3') }}
         </button>
       </div>
 
@@ -54,9 +55,9 @@ const close = () => {
           <p>{{ $t('guide.tab2Desc') || 'There are several ways to save links and notes.' }}</p>
 
           <ul class="c-guide__list">
-            <li><strong>{{ $t('guide.tab2Li1Title') || 'Manual Entry:' }}</strong> {{ $t('guide.tab2Li1Desc') || 'Click the ＋ button at the top right to paste a URL or write a new text memo.' }}</li>
-            <li><strong>{{ $t('guide.tab2Li2Title') || 'PC Bookmarklet:' }}</strong> {{ $t('guide.tab2Li2Desc') || 'Open the "OmiLink Tools" from your user profile menu to get a bookmarklet. Click it on any website to save instantly!' }}</li>
-            <li><strong>{{ $t('guide.tab2Li3Title') || 'Mobile Sharing:' }}</strong> {{ $t('guide.tab2Li3Desc') || 'On mobile, you can use the Share (📤) button in your browser and select OmiLink (if installed) to save directly.' }}</li>
+            <li><strong>{{ $t('guide.tab2Li1Title') }}</strong> {{ $t('guide.tab2Li1Desc') }}</li>
+            <li><strong>{{ $t('guide.tab2Li2Title') }}</strong> {{ $t('guide.tab2Li2Desc') }} <a href="#" @click.prevent="emit('open-tools')" class="c-guide__link">{{ $t('header.tools') }}</a></li>
+            <li><strong>{{ $t('guide.tab2Li3Title') }}</strong> {{ $t('guide.tab2Li3Desc') }} <a href="#" @click.prevent="currentTab = 3" class="c-guide__link">{{ $t('guide.tab3') }}</a></li>
           </ul>
         </div>
 
@@ -165,6 +166,14 @@ const close = () => {
   padding-left: 20px;
   line-height: 1.7;
   color: var(--color-text-main);
+}
+
+.c-guide__link {
+  color: #1a73e8;
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 700;
+  margin-left: 4px;
 }
 
 .c-guide__list li {

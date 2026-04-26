@@ -26,9 +26,11 @@ export function useGridInteract(
   isEditMode: Ref<boolean>,
   gridSize: Ref<number>,
   gap: Ref<number>,
-  persistChange: (item: ViewItem) => Promise<void>
+  gridPadding: Ref<number>,
+  persistChange: (item: ViewItem) => Promise<void>,
+  onViewHeightExpand: (newRows: number) => Promise<void>
 ) {
-  const dragPreview = ref<{ col: number, row: number, w: number, h: number, title: string, isValid: boolean } | null>(null);
+  const dragPreview = ref<{ id: string, col: number, row: number, w: number, h: number, title: string, isValid: boolean } | null>(null);
 
   // Constraints
 
@@ -51,10 +53,10 @@ export function useGridInteract(
 
   function calculateGridPosition(clientX: number, clientY: number, container: HTMLElement, w: number = 1, h: number = 1) {
     const containerRect = container.getBoundingClientRect();
-    const offsetX = clientX - containerRect.left;
-    const offsetY = clientY - containerRect.top;
-    const snappedX = offsetX - (w * gridSize.value / 2);
-    const snappedY = offsetY - (h * gridSize.value / 2);
+    const offsetX = clientX - containerRect.left - gridPadding.value;
+    const offsetY = clientY - containerRect.top - gridPadding.value;
+    const snappedX = offsetX - (w * gridSize.value / 2) + (gridSize.value / 2);
+    const snappedY = offsetY - (h * gridSize.value / 2) + (gridSize.value / 2);
     const col = Math.min(currentView.value.cols - w, Math.max(0, Math.round(snappedX / gridSize.value)));
     const row = Math.max(0, Math.round(snappedY / gridSize.value));
     return { col, row };
@@ -76,7 +78,7 @@ export function useGridInteract(
     const isValid = !isOutOfBounds && isValidPosition('', col, row, w, h);
 
     if (!dragPreview.value || dragPreview.value.col !== col || dragPreview.value.row !== row || dragPreview.value.isValid !== isValid) {
-      dragPreview.value = { col, row, w, h, title, isValid };
+      dragPreview.value = { id: '', col, row, w, h, title, isValid };
     }
   }
 
@@ -90,23 +92,22 @@ export function useGridInteract(
     // Background Panning
     const bgInteractable = interact('.p-grid').draggable({
       cursorChecker: (_action, _interactable, _element, interacting) => interacting ? 'grabbing' : 'default',
-      inertia: {
-        resistance: 10,
-        minSpeed: 200,
-        endSpeed: 100
-      },
+      inertia: false,
       listeners: {
         start(event) {
-          // If touch, we let the browser handle the scrolling
-          if (event.pointerType === 'touch') {
+          const target = event.target as HTMLElement;
+          if (target.closest('.c-card-wrapper') || target.closest('button') || target.closest('a')) {
             event.interaction.stop();
             return;
           }
           event.currentTarget.classList.add('is-panning');
         },
         move(event) {
-          event.currentTarget.scrollLeft -= event.dx;
-          event.currentTarget.scrollTop -= event.dy;
+          const el = document.querySelector('.p-grid');
+          if (el) {
+            el.scrollLeft -= event.dx;
+            el.scrollTop -= event.dy;
+          }
         },
         end(event) {
           event.currentTarget.classList.remove('is-panning');
@@ -114,21 +115,12 @@ export function useGridInteract(
       }
     });
 
-    // Remove old click prevention logic
-
     // Card Dragging
     const cardInteractable = interact('.c-card-wrapper')
       .draggable({
         enabled: isEditMode.value,
         inertia: false,
         autoScroll: true,
-        modifiers: [
-          interact.modifiers.snap({
-            targets: [interact.snappers.grid({ x: gridSize.value, y: gridSize.value })],
-            range: Infinity,
-            relativePoints: [{ x: 0, y: 0 }]
-          })
-        ],
         listeners: {
           start(event) {
             const target = event.target;
@@ -138,11 +130,8 @@ export function useGridInteract(
             const item = items.value.find(i => i.id === id);
             if (item) {
               originalPos = { x: item.x, y: item.y, w: item.w, h: item.h };
-              const x = parseFloat(target.getAttribute('data-x')) || 0;
-              const y = parseFloat(target.getAttribute('data-y')) || 0;
-              target.style.transform = `translate(${x + 15}px, ${y - 15}px)`;
-
               dragPreview.value = { 
+                id: item.id,
                 col: item.x, 
                 row: item.y, 
                 w: item.w, 
@@ -154,12 +143,6 @@ export function useGridInteract(
           },
           move(event) {
             const target = event.target;
-            const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-            const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-            target.style.transform = `translate(${x + 15}px, ${y - 15}px)`;
-            target.setAttribute('data-x', x);
-            target.setAttribute('data-y', y);
-
             const id = target.getAttribute('data-id');
             const item = items.value.find(i => i.id === id);
             const container = target.closest('.p-grid__container') as HTMLElement;
@@ -197,6 +180,12 @@ export function useGridInteract(
             if (isValidPosition(id, snappedX, snappedY, item.w, item.h)) {
               item.x = snappedX;
               item.y = snappedY;
+
+              // Expand view height if needed
+              if (item.y + item.h > currentView.value.rows) {
+                onViewHeightExpand(item.y + item.h);
+              }
+
               if (item.x !== originalPos.x || item.y !== originalPos.y) {
                 persistChange(item);
               }
@@ -204,12 +193,6 @@ export function useGridInteract(
               item.x = originalPos.x;
               item.y = originalPos.y;
             }
-
-            const finalX = item.x * gridSize.value;
-            const finalY = item.y * gridSize.value;
-            target.style.transform = `translate(${finalX}px, ${finalY}px)`;
-            target.setAttribute('data-x', finalX.toString());
-            target.setAttribute('data-y', finalY.toString());
           }
         }
       })
@@ -243,12 +226,6 @@ export function useGridInteract(
 
             target.style.width = newW + 'px';
             target.style.height = newH + 'px';
-            
-            const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.deltaRect.left;
-            const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.deltaRect.top;
-            target.style.transform = `translate(${x}px, ${y}px)`;
-            target.setAttribute('data-x', x.toString());
-            target.setAttribute('data-y', y.toString());
           },
           end(event) {
             const target = event.target;
@@ -264,6 +241,12 @@ export function useGridInteract(
             if (isValidPosition(id, item.x, item.y, snappedW, snappedH)) {
               item.w = snappedW;
               item.h = snappedH;
+
+              // Expand view height if needed
+              if (item.y + item.h > currentView.value.rows) {
+                onViewHeightExpand(item.y + item.h);
+              }
+
               persistChange(item);
             } else {
               item.w = originalPos.w;
@@ -281,27 +264,6 @@ export function useGridInteract(
     watch(isEditMode, (newMode) => {
       cardInteractable.draggable({ enabled: newMode });
       cardInteractable.resizable({ enabled: newMode });
-    });
-
-    // Update snap targets when gridSize changes
-    watch(gridSize, (newSize) => {
-      cardInteractable.draggable({
-        modifiers: [
-          interact.modifiers.snap({
-            targets: [interact.snappers.grid({ x: newSize, y: newSize })],
-            range: Infinity,
-            relativePoints: [{ x: 0, y: 0 }]
-          })
-        ]
-      });
-      cardInteractable.resizable({
-        modifiers: [
-          interact.modifiers.snapSize({
-            targets: [interact.snappers.grid({ x: newSize, y: newSize })],
-            range: Infinity,
-          })
-        ]
-      });
     });
 
     pointerMoveListener = updateGhostFromPointer;

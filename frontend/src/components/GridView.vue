@@ -14,6 +14,8 @@ type ExpandedViewItem = PlacementsResponse<{ item: ItemsResponse }>;
 const emit = defineEmits<{
   (e: 'move-success'): void;
   (e: 'scroll', data: { scrollTop: number, scrollHeight: number, clientHeight: number }): void;
+  (e: 'open-add-modal'): void;
+  (e: 'viewUpdated', view: ViewsResponse): void;
 }>();
 
 const { t } = useI18n();
@@ -100,8 +102,8 @@ async function fetchItems() {
         favicon_url: item?.favicon_url,
         x: record.col ?? 0,
         y: record.row ?? 0,
-        w: record.width || (type === 'memo' ? 2 : 2), // Default to 2x1 for both for now
-        h: record.height || 1,
+        w: record.width || (type === 'memo' ? 3 : 3),
+        h: record.height || 2,
         color: '#ffffff',
       };
     });
@@ -158,11 +160,11 @@ async function deleteItem(item: ViewItem) {
 
 const gridSize = ref(78);
 const gap = ref(12);
+const gridPadding = ref(24);
 
 const gridHeight = computed(() => {
-  const minRows = props.currentView?.rows || 1;
-  const maxY = items.value.reduce((max, item) => Math.max(max, item.y + item.h), minRows);
-  return maxY * gridSize.value;
+  const rows = props.currentView?.rows || 1;
+  return rows * gridSize.value;
 });
 
 const gridWidth = computed(() => {
@@ -177,7 +179,17 @@ const { dragPreview, setupInteract, teardownInteract } = useGridInteract(
   toRef(props, 'isEditMode'),
   gridSize,
   gap,
-  persistChange
+  gridPadding,
+  persistChange,
+  async (newRows: number) => {
+    if (!props.currentView) return;
+    try {
+      const updated = await pb.collection('views').update(props.currentView.id, { rows: newRows });
+      emit('viewUpdated', updated);
+    } catch (e) {
+      console.error('Failed to update view height:', e);
+    }
+  }
 );
 
 // Export fetchItems for parent access
@@ -199,16 +211,20 @@ onUnmounted(() => {
     <div v-else class="p-grid__container" 
          :class="{ 'is-drag-invalid': dragPreview && !dragPreview.isValid }"
          :style="{ 
-      width: `${gridWidth}px`,
-      minWidth: `${gridWidth}px`,
-      maxWidth: `${gridWidth}px`,
-      height: `${gridHeight}px`,
-      minHeight: '100%',
+      width: `${gridWidth + gridPadding * 2}px`,
+      minWidth: `${gridWidth + gridPadding * 2}px`,
+      maxWidth: `${gridWidth + gridPadding * 2}px`,
+      height: `${gridHeight + gridPadding * 2}px`,
+      minHeight: `${gridHeight + gridPadding * 2}px`,
+      maxHeight: `${gridHeight + gridPadding * 2}px`,
       '--grid-size': `${gridSize}px`,
       '--grid-gap': `${gap}px`,
       outline: dragPreview ? (isEditMode ? '2px solid var(--color-primary)' : '2px dashed var(--color-primary)') : 'none',
       outlineOffset: '-2px',
-      display: 'block'
+      display: 'block',
+      padding: `${gridPadding}px`,
+      position: 'relative',
+      boxSizing: 'border-box'
     }">
       <div 
         v-for="item in (filteredItems as any)" 
@@ -218,8 +234,10 @@ onUnmounted(() => {
         :style="{
           width: `${item.w * gridSize - gap}px`,
           height: `${item.h * gridSize - gap}px`,
-          transform: `translate(${item.x * gridSize}px, ${item.y * gridSize}px)`,
-          margin: `${gap / 2}px`
+          transform: `translate(${item.x * gridSize + gridPadding}px, ${item.y * gridSize + gridPadding}px)`,
+          margin: `${gap / 2}px`,
+          opacity: dragPreview && dragPreview.id === item.id ? 0.4 : 1,
+          filter: dragPreview && dragPreview.id === item.id ? 'grayscale(0.5)' : 'none'
         }"
         :data-id="item.id"
         :data-x="item.x * gridSize"
@@ -235,11 +253,14 @@ onUnmounted(() => {
           @move-to-view="openAddToViewModal(item, 'move')"
           @edit="openEditModal(item)"
           @view-memo="openMemoView(item)"
+          @open-add-modal="emit('open-add-modal')"
         />
       </div>
       
       <div v-if="items.length === 0 && !dragPreview" class="p-grid__empty">
-        {{ $t('grid.empty') }}
+        <div class="p-grid__empty-box">
+          <p v-html="$t('grid.empty')" @click.prevent="e => { if((e.target as HTMLElement).tagName === 'A') emit('open-add-modal') }"></p>
+        </div>
       </div>
 
       <!-- Drag Preview Ghost -->
@@ -250,7 +271,7 @@ onUnmounted(() => {
         :style="{
           width: `${dragPreview.w * gridSize - gap}px`,
           height: `${dragPreview.h * gridSize - gap}px`,
-          transform: `translate(${dragPreview.col * gridSize}px, ${dragPreview.row * gridSize}px)`,
+          transform: `translate(${dragPreview.col * gridSize + gridPadding}px, ${dragPreview.row * gridSize + gridPadding}px)`,
           margin: `${gap / 2}px`
         }"
       >
@@ -291,13 +312,41 @@ onUnmounted(() => {
 
 <style scoped>
 .p-grid__loading, .p-grid__empty {
+  position: absolute;
+  inset: 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 200px;
   color: var(--color-text-muted);
-  font-style: italic;
   width: 100%;
+  pointer-events: none; /* Let clicks pass to container if needed */
+  z-index: 10;
+}
+
+.p-grid__empty-box {
+  pointer-events: auto; /* Re-enable for the box content */
+  background: var(--color-bg-page);
+  border: 1px dashed var(--color-border);
+  padding: 40px;
+  margin: 0 24px;
+  border-radius: 24px;
+  text-align: center;
+  max-width: 500px;
+  box-shadow: inset 1px 1px 3px rgba(0,0,0,0.02);
+}
+
+.p-grid__empty-box p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  font-style: normal;
+}
+
+:deep(.p-grid__empty-box a) {
+  color: var(--color-primary);
+  font-weight: 800;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .c-grid-container.p-grid {
@@ -307,7 +356,7 @@ onUnmounted(() => {
   height: 100%;
   width: 100%;
   padding: 24px;
-  background-color: var(--color-bg-page);
+  background-color: var(--color-bg-page-dark, #f0f0f0);
   transition: background-color 0.3s ease;
   user-select: none;
   -webkit-overflow-scrolling: touch; /* Momentum scrolling for iOS */
@@ -318,38 +367,40 @@ onUnmounted(() => {
   background-color: var(--color-bg-surface);
   border: 1px solid var(--color-border);
   border-radius: 9px;
-  box-shadow: none;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
   overflow: visible;
 }
 
 /* Vertical dashed grid lines */
-.p-grid__container::before {
+.is-edit-mode .p-grid__container::before {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: repeating-linear-gradient(to bottom, var(--color-border) 0, var(--color-border) 3px, transparent 3px, transparent 10px);
-  background-size: 1.5px 100%;
+  background-image: repeating-linear-gradient(to bottom, var(--color-text-muted) 0, var(--color-text-muted) 2px, transparent 2px, transparent 8px);
+  background-size: 1px 100%;
   background-repeat: repeat;
-  mask-image: linear-gradient(to right, black 1.5px, transparent 1.5px);
+  mask-image: linear-gradient(to right, black 1px, transparent 1px);
   mask-size: var(--grid-size) 100%;
-  opacity: 0.85;
+  mask-position: v-bind('gridPadding + "px"') 0;
+  opacity: 0.15;
   z-index: 0; /* Behind children */
 }
 
 /* Horizontal dashed grid lines */
-.p-grid__container::after {
+.is-edit-mode .p-grid__container::after {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: repeating-linear-gradient(to right, var(--color-border) 0, var(--color-border) 3px, transparent 3px, transparent 10px);
-  background-size: 100% 1.5px;
+  background-image: repeating-linear-gradient(to right, var(--color-text-muted) 0, var(--color-text-muted) 2px, transparent 2px, transparent 8px);
+  background-size: 100% 1px;
   background-repeat: repeat;
-  mask-image: linear-gradient(to bottom, black 1.5px, transparent 1.5px);
+  mask-image: linear-gradient(to bottom, black 1px, transparent 1px);
   mask-size: 100% var(--grid-size);
-  opacity: 0.85;
+  mask-position: 0 v-bind('gridPadding + "px"');
+  opacity: 0.15;
   z-index: 0; /* Behind children */
 }
 

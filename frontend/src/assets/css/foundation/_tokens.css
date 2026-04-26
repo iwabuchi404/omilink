@@ -5,6 +5,7 @@
 
   /* Light Theme (Pattern 2: Classic & Warm) */
   --color-bg-page: #f0ece6;
+  --color-bg-page-dark: #dcd4c8;
   /* Gutter/Outer background */
   --color-bg-surface: #fdfaf5;
   /* Main content area (paper) */
@@ -25,6 +26,8 @@
   --color-primary-hover: #5d3c30;
   --color-accent: #b05040;
   --color-danger: #b05040;
+  --color-focus: #1a73e8;
+  --color-focus-shadow: rgba(26, 115, 232, 0.15);
 
   /* Card specific */
   --color-card-bg: #fdfaf5;
@@ -55,6 +58,7 @@
 [data-theme="dark"] {
   /* Pattern 2: Classic & Warm Dark */
   --color-bg-page: #131109;
+  --color-bg-page-dark: #080704;
   --color-bg-surface: #1e1c17;
   --color-bg-modal: #1e1c17;
 
@@ -76,6 +80,8 @@
   --color-primary-hover: #9c6754;
   --color-accent: #b05040;
   --color-danger: #b05040;
+  --color-focus: #4a90e2;
+  --color-focus-shadow: rgba(74, 144, 226, 0.2);
 
   /* Neumorphism (Refined for smoothness) */
   --neu-border-normal: 1px solid var(--color-card-border);

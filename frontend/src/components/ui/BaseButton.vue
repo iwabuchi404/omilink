@@ -60,14 +60,14 @@ defineEmits(['click'])
   border: none;
   box-shadow: 
     inset 1px 1.5px 0 rgba(255, 255, 255, 0.22),
-    0 4px 12px rgba(176, 80, 64, 0.25);
+    0 4px 12px rgba(30, 20, 15, 0.25);
 }
 
 .c-btn--primary:not(:disabled):hover {
   filter: brightness(1.1);
   box-shadow: 
     inset 1px 1.5px 0 rgba(255, 255, 255, 0.25),
-    0 8px 20px rgba(176, 80, 64, 0.35);
+    0 8px 18px rgba(30, 20, 15, 0.35);
 }
 
 .c-btn--primary:not(:disabled):active {

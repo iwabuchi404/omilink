@@ -313,6 +313,7 @@ onMounted(async () => {
           :views="views"
           :search-query="searchQuery"
           @scroll="headerRef?.handleScroll($event)"
+          @open-add-modal="showAddModal = true"
         />
       </div>
     </Transition>
@@ -347,6 +348,7 @@ onMounted(async () => {
     <GuideModal
       :show="showGuideModal"
       @close="showGuideModal = false"
+      @open-tools="showGuideModal = false; showToolsModal = true"
     />
 
     <WelcomeModal

@@ -104,8 +104,8 @@ async function handleSubmit() {
         if (bottom > maxBottom) maxBottom = bottom;
     }
 
-    const itemW = 2;
-    const itemH = type.value === 'memo' ? 2 : 1;
+    const itemW = 3;
+    const itemH = 2;
     // Phase 11 UX: Place at the bottom-left of the current view
     const position = { col: 0, row: maxBottom };
 
@@ -190,7 +190,7 @@ function close() {
               @click="fetchTitle" 
               :disabled="!url || fetchingTitle"
             >
-              {{ fetchingTitle ? $t('modal.fetching') : $t('modal.fetch') }}
+              {{ fetchingTitle ? $t('modal.fetching') : $t('modal.fetchInfo') }}
             </button>
           </div>
         </div>
@@ -282,8 +282,8 @@ function close() {
 
 .c-modal__field input:focus, .c-modal__field textarea:focus, .c-modal__field select:focus {
   outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1);
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.15);
 }
 
 .c-modal__field textarea {

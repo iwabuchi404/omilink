@@ -316,8 +316,8 @@ const displayTitle = computed(() => {
 
 .c-card__title {
   margin: 0;
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 700;
   line-height: 1.4;
   color: var(--color-text-main);
   display: -webkit-box;
