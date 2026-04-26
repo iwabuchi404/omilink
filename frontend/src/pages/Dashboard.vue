@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, computed, provide } from 'vue'
 import pb from '../lib/pocketbase'
+import { useI18n } from 'vue-i18n'
 import AppHeader from '../components/layout/AppHeader.vue'
 import ViewTabs from '../components/layout/ViewTabs.vue'
 import GridView from '../components/GridView.vue'
@@ -9,16 +10,19 @@ import AddItemModal from '../components/modals/AddItemModal.vue'
 import AddViewModal from '../components/modals/AddViewModal.vue'
 import ToolsModal from '../components/modals/ToolsModal.vue'
 import GuideModal from '../components/modals/GuideModal.vue'
+import WelcomeModal from '../components/modals/WelcomeModal.vue'
 import type { ViewsResponse } from '../lib/pocketbase-types'
 import { useAuth } from '../composables/useAuth'
 
 const { isAuthenticated, currentUser, logout } = useAuth()
+const { t } = useI18n()
 
 const isEditMode = ref(false)
 const showAddModal = ref(false)
 const showAddViewModal = ref(false)
 const showToolsModal = ref(false)
 const showGuideModal = ref(false)
+const showWelcomeModal = ref(false)
 const searchQuery = ref('')
 const gridRef = ref<any>(null)
 const headerRef = ref<any>(null)
@@ -100,10 +104,10 @@ async function fetchViews() {
       sort: 'sort_order,created' 
     });
     if (records.length === 0) {
-      // First time user! Create Home and Bookmarks views
+      // First time user! Create Guide and Bookmarks views
       const home = await pb.collection('views').create<ViewsResponse>({
         user: currentUser.value?.id,
-        name: '🏠 Home',
+        name: t('onboarding.tabGuide'),
         cols: 6,
         rows: 6,
         cell_size: '120px',
@@ -112,7 +116,7 @@ async function fetchViews() {
       
       const bookmarks = await pb.collection('views').create<ViewsResponse>({
         user: currentUser.value?.id,
-        name: '🔖 Bookmarks',
+        name: t('onboarding.tabBookmarks'),
         cols: 6,
         rows: 6,
         cell_size: '120px',
@@ -121,80 +125,75 @@ async function fetchViews() {
       
       records = [home, bookmarks];
 
-      // Inject tutorial data into Home
-      const tutorialMemo = await pb.collection('items').create({
+      // Inject tutorial data into Guide Tab
+      const card1 = await pb.collection('items').create({
         type: 'memo',
-        title: '🎊 OmiLinkへようこそ！',
-        memo: '私はチュートリアル用のメモです。\nヘッダーの「✎」ボタンを押してから、私をドラッグして好きな場所に動かして遊んでみてください！\n\n（使い終わったら、右上の ⋯ メニューからゴミ箱へ移動して消してくださいね🗑️）',
+        title: t('onboarding.card1Title'),
+        memo: t('onboarding.card1Desc'),
         is_deleted: false,
         user: currentUser.value?.id
       });
       await pb.collection('placements').create({
-        item: tutorialMemo.id, view: home.id, user: currentUser.value?.id,
-        col: 0, row: 0, width: 4, height: 3
+        item: card1.id, view: home.id, user: currentUser.value?.id,
+        col: 0, row: 0, width: 2, height: 2
       });
 
-      const guideBookmark = await pb.collection('items').create({
-        type: 'bookmark',
-        title: '📖 OmiLink使い方ガイドを開く',
-        url: window.location.origin + '/?show=guide',
-        memo: '',
+      const card2 = await pb.collection('items').create({
+        type: 'memo',
+        title: t('onboarding.card2Title'),
+        memo: t('onboarding.card2Desc'),
         is_deleted: false,
         user: currentUser.value?.id
       });
       await pb.collection('placements').create({
-        item: guideBookmark.id, view: home.id, user: currentUser.value?.id,
-        col: 0, row: 3, width: 4, height: 2
+        item: card2.id, view: home.id, user: currentUser.value?.id,
+        col: 2, row: 0, width: 4, height: 2
       });
 
-      const addBookmarkMemo = await pb.collection('items').create({
+      const card3 = await pb.collection('items').create({
         type: 'memo',
-        title: '➕ ブックマーク追加',
-        memo: '右上の「＋」ボタンをクリックして、新しいURLやテキストをスクラップしましょう！',
+        title: t('onboarding.card3Title'),
+        memo: t('onboarding.card3Desc'),
         is_deleted: false,
         user: currentUser.value?.id
       });
       await pb.collection('placements').create({
-        item: addBookmarkMemo.id, view: home.id, user: currentUser.value?.id,
-        col: 0, row: 5, width: 4, height: 3
+        item: card3.id, view: home.id, user: currentUser.value?.id,
+        col: 0, row: 2, width: 6, height: 2
       });
 
-      const easyAddMemo = await pb.collection('items').create({
+      const card4 = await pb.collection('items').create({
         type: 'memo',
-        title: '🚀 簡単に保存する方法',
-        memo: 'スマホなら「アプリとしてインストール」すると便利です！\nPCならユーザーメニューから「ブックマークレット」をブラウザに登録すれば、閲覧中の記事を1クリックで保存できますよ。',
+        title: t('onboarding.card4Title'),
+        memo: t('onboarding.card4Desc'),
         is_deleted: false,
         user: currentUser.value?.id
       });
       await pb.collection('placements').create({
-        item: easyAddMemo.id, view: home.id, user: currentUser.value?.id,
-        col: 0, row: 8, width: 4, height: 3
+        item: card4.id, view: home.id, user: currentUser.value?.id,
+        col: 0, row: 4, width: 6, height: 2
       });
 
       // Inject sample data into Bookmarks
-      const googleId = await pb.collection('items').create({
-        type: 'bookmark', title: 'Google', url: 'https://www.google.com', memo: '', is_deleted: false, user: currentUser.value?.id
-      });
-      await pb.collection('placements').create({
-        item: googleId.id, view: bookmarks.id, user: currentUser.value?.id,
-        col: 0, row: 0, width: 4, height: 2
-      });
+      const sampleItems = [
+        { title: 'Google', url: 'https://www.google.com', col: 0, row: 0, w: 4, h: 2 },
+        { title: 'Wikipedia', url: 'https://ja.wikipedia.org', col: 4, row: 0, w: 2, h: 2 },
+        { title: 'Amazon', url: 'https://www.amazon.co.jp', col: 0, row: 2, w: 2, h: 1 },
+        { title: 'YouTube', url: 'https://www.youtube.com', col: 2, row: 2, w: 4, h: 3 },
+        { title: 'GitHub', url: 'https://github.com', col: 0, row: 3, w: 2, h: 2 },
+        { title: 'PocketBase', url: 'https://pocketbase.io', col: 2, row: 5, w: 2, h: 2 },
+        { title: 'Vite', url: 'https://vitejs.dev', col: 4, row: 5, w: 2, h: 2 },
+      ];
 
-      const wikipediaId = await pb.collection('items').create({
-        type: 'bookmark', title: 'Wikipedia', url: 'https://ja.wikipedia.org', memo: '', is_deleted: false, user: currentUser.value?.id
-      });
-      await pb.collection('placements').create({
-        item: wikipediaId.id, view: bookmarks.id, user: currentUser.value?.id,
-        col: 0, row: 2, width: 4, height: 2
-      });
-
-      const amazonId = await pb.collection('items').create({
-        type: 'bookmark', title: 'Amazon', url: 'https://www.amazon.co.jp', memo: '', is_deleted: false, user: currentUser.value?.id
-      });
-      await pb.collection('placements').create({
-        item: amazonId.id, view: bookmarks.id, user: currentUser.value?.id,
-        col: 0, row: 4, width: 4, height: 2
-      });
+      for (const s of sampleItems) {
+        const item = await pb.collection('items').create({
+          type: 'bookmark', title: s.title, url: s.url, memo: '', is_deleted: false, user: currentUser.value?.id
+        });
+        await pb.collection('placements').create({
+          item: item.id, view: bookmarks.id, user: currentUser.value?.id,
+          col: s.col, row: s.row, width: s.w, height: s.h
+        });
+      }
     }
     views.value = records;
     if (!currentViewId.value && records.length > 0) {
@@ -262,6 +261,11 @@ onMounted(async () => {
     
     window.history.replaceState({}, document.title, window.location.pathname);
     showAddModal.value = true;
+  }
+
+  // Check for Welcome modal
+  if (!localStorage.getItem('omi_has_seen_welcome')) {
+    showWelcomeModal.value = true;
   }
 })
 </script>
@@ -343,6 +347,11 @@ onMounted(async () => {
     <GuideModal
       :show="showGuideModal"
       @close="showGuideModal = false"
+    />
+
+    <WelcomeModal
+      :show="showWelcomeModal"
+      @close="showWelcomeModal = false"
     />
   </main>
 

@@ -140,6 +140,23 @@
     "tab3Title": "Install as App",
     "tab3Desc": "Install OmiLink on your device home screen for a full-screen app experience and easy native sharing.",
     "installed": "You are already using the installed App version! 🎉",
-    "tab3BrowserInstall": "To install, look for the 'Install App' or 'Add to Home Screen' option in your browser menu."
+    "tab3BrowserInstall": "Please select 'Install App' or 'Add to Home Screen' from your browser menu."
+  },
+  "welcome": {
+    "title": "Welcome to OmiLink",
+    "desc": "Save your favorite web articles and sites to your own personal board and organize them exactly how you like.",
+    "cta": "Get Started"
+  },
+  "onboarding": {
+    "tabGuide": "🏁 Guide",
+    "tabBookmarks": "🔖 Bookmarks",
+    "card1Title": "📌 Add Your First Bookmark",
+    "card1Desc": "Tap the \"＋ Add\" button in the top right and try adding one of your favorite URLs.\n\nEnter the URL and press \"Fetch\" to automatically retrieve its title and description.",
+    "card2Title": "✋ Arrange Your Cards",
+    "card2Desc": "① Press the \"✏ Edit\" button in the header\n② Drag and drop cards to your preferred locations\n③ Click \"✓ Done\" to save\n\nWhile editing, you can also use the \"...\" menu on each card to resize or move items to the trash.",
+    "card3Title": "📖 User Guide",
+    "card3Desc": "You can find more detailed instructions anytime in User Menu → \"User Guide\".\n\nYou can delete all these tutorial cards by deleting the entire \"🏁 Guide\" tab.",
+    "card4Title": "🚀 More Ways to Save",
+    "card4Desc": "For PC:\nAdd the bookmarklet from User Menu → \"Tools & Apps\" to save pages with a single click.\n\nFor Mobile:\n\"Install as App\" to save directly using the browser's native Share button."
   }
 }
